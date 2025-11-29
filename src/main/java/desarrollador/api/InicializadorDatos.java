@@ -3,13 +3,9 @@ package desarrollador.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import desarrollador.api.models.Categoria;
-import desarrollador.api.models.Comuna;
 import desarrollador.api.models.Producto;
-import desarrollador.api.models.Region;
 import desarrollador.api.repositories.CategoriaRepositorio;
-import desarrollador.api.repositories.ComunaRepositorio;
 import desarrollador.api.repositories.ProductoRepositorio;
-import desarrollador.api.repositories.RegionRepositorio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -27,19 +23,13 @@ import java.util.List;
 public class InicializadorDatos {
     private final CategoriaRepositorio categoriaRepositorio;
     private final ProductoRepositorio productoRepositorio;
-    private final RegionRepositorio regionRepositorio;
-    private final ComunaRepositorio comunaRepositorio;
     private final ObjectMapper mapper = new ObjectMapper();
     private final Logger log = LoggerFactory.getLogger(InicializadorDatos.class);
 
     public InicializadorDatos(CategoriaRepositorio categoriaRepositorio,
-                              ProductoRepositorio productoRepositorio,
-                              RegionRepositorio regionRepositorio,
-                              ComunaRepositorio comunaRepositorio) {
+                              ProductoRepositorio productoRepositorio) {
         this.categoriaRepositorio = categoriaRepositorio;
         this.productoRepositorio = productoRepositorio;
-        this.regionRepositorio = regionRepositorio;
-        this.comunaRepositorio = comunaRepositorio;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -69,31 +59,6 @@ public class InicializadorDatos {
         }
     }
 
-    private void cargarRegionesSiVacio() throws IOException {
-        if (regionRepositorio.count() > 0) return;
-        JsonNode node = leerJson("ubicaciones.json", "datos/ubicaciones.json");
-        if (node != null && node.isArray()) {
-            int regiones = 0;
-            int comunas = 0;
-            for (JsonNode n : node) {
-                String nombreRegion = n.get("region").asText();
-                Region r = new Region();
-                r.setNombre(nombreRegion);
-                r = regionRepositorio.save(r);
-                Iterator<JsonNode> it = n.get("comunas").elements();
-                while (it.hasNext()) {
-                    String nombreComuna = it.next().asText();
-                    Comuna c = new Comuna();
-                    c.setNombre(nombreComuna);
-                    c.setRegion(r);
-                    comunaRepositorio.save(c);
-                    comunas++;
-                }
-                regiones++;
-            }
-            log.info("Regiones cargadas: {}, Comunas cargadas: {}", regiones, comunas);
-        }
-    }
 
     private void cargarProductosSiVacio() throws IOException {
         if (productoRepositorio.count() > 0) return;
