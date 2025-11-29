@@ -4,6 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import desarrollador.api.models.Categoria;
 import desarrollador.api.models.Producto;
+import desarrollador.api.models.Profile;
+import desarrollador.api.models.Role;
+import desarrollador.api.models.User;
+import desarrollador.api.repositories.UserRepositorio;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import desarrollador.api.repositories.CategoriaRepositorio;
 import desarrollador.api.repositories.ProductoRepositorio;
 import org.slf4j.Logger;
@@ -24,18 +29,25 @@ public class InicializadorDatos {
     private final CategoriaRepositorio categoriaRepositorio;
     private final ProductoRepositorio productoRepositorio;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final UserRepositorio userRepositorio;
+    private final PasswordEncoder passwordEncoder;
     private final Logger log = LoggerFactory.getLogger(InicializadorDatos.class);
 
     public InicializadorDatos(CategoriaRepositorio categoriaRepositorio,
-                              ProductoRepositorio productoRepositorio) {
+                              ProductoRepositorio productoRepositorio,
+                              UserRepositorio userRepositorio,
+                              PasswordEncoder passwordEncoder) {
         this.categoriaRepositorio = categoriaRepositorio;
         this.productoRepositorio = productoRepositorio;
+        this.userRepositorio = userRepositorio;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void cargar() {
         try {
             cargarCategoriasSiVacio();
+            cargarAdminSiNoExiste();
         } catch (Exception e) {
             log.warn("Fallo en carga inicial", e);
         }
@@ -92,6 +104,19 @@ public class InicializadorDatos {
             }
             log.info("Productos cargados: {}", total);
         }
+    }
+
+    private void cargarAdminSiNoExiste() {
+        if (userRepositorio.existsByEmailIgnoreCase("admin@catalogo.com")) return;
+        User u = new User();
+        u.setEmail("admin@catalogo.com");
+        u.setPasswordHash(passwordEncoder.encode("admin123"));
+        u.setRole(Role.ADMIN);
+        Profile p = new Profile();
+        p.setNombre("Admin");
+        u.setProfile(p);
+        userRepositorio.save(u);
+        log.info("Admin creado");
     }
 
     private JsonNode leerJson(String rootFileName, String classpathFile) throws IOException {
