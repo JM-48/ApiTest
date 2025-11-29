@@ -16,6 +16,14 @@ public class Comuna {
     @JsonBackReference
     private Region region;
 
+    public Comuna() {
+    }
+
+    public Comuna(String nombre, Region region) {
+        this.nombre = nombre;
+        this.region = region;
+    }
+
     public Long getId() {
         return id;
     }

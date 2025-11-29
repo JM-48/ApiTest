@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface ComunaRepositorio extends JpaRepository<Comuna, Long> {
     List<Comuna> findByRegion(Region region);
+    List<Comuna> findByRegionNombreIgnoreCase(String regionNombre);
 }

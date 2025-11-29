@@ -8,9 +8,6 @@ import java.util.List;
 @Entity
 public class Region {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(nullable = false, unique = true)
     private String nombre;
 
@@ -18,12 +15,11 @@ public class Region {
     @JsonManagedReference
     private List<Comuna> comunas = new ArrayList<>();
 
-    public Long getId() {
-        return id;
+    public Region() {
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public Region(String nombre) {
+        this.nombre = nombre;
     }
 
     public String getNombre() {

@@ -21,8 +21,8 @@ public class UbicacionControlador {
         return servicio.regiones();
     }
 
-    @GetMapping("/regiones/{id}/comunas")
-    public List<Comuna> comunas(@PathVariable Long id) {
-        return servicio.comunasPorRegion(id);
+    @GetMapping("/comunas/{regionNombre}")
+    public List<Comuna> comunas(@PathVariable String regionNombre) {
+        return servicio.comunasPorRegion(regionNombre);
     }
 }

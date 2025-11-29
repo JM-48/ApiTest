@@ -23,8 +23,8 @@ public class UbicacionServicio {
         return regionRepositorio.findAll();
     }
 
-    public List<Comuna> comunasPorRegion(Long regionId) {
-        Region region = regionRepositorio.findById(regionId)
+    public List<Comuna> comunasPorRegion(String regionNombre) {
+        Region region = regionRepositorio.findByNombreIgnoreCase(regionNombre)
                 .orElseThrow(() -> new NoSuchElementException("Region no encontrada"));
         return comunaRepositorio.findByRegion(region);
     }

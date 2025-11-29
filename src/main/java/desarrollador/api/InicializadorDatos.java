@@ -46,7 +46,6 @@ public class InicializadorDatos {
     public void cargar() {
         try {
             cargarCategoriasSiVacio();
-            cargarRegionesSiVacio();
         } catch (Exception e) {
             log.warn("Fallo en carga inicial", e);
         }
