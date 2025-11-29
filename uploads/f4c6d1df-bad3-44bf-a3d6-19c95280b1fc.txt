@@ -1,0 +1,272 @@
+🟦 INSTRUCCIONES PARA LA IA (para construir/modificar mi API — versión final)
+
+Quiero que modifiques o generes un proyecto en Spring Boot que cumpla con todos estos requisitos para una evaluación académica. La API se desplegará en Render y usará PostgreSQL en producción. Además, los datos iniciales se cargarán desde archivos JSON que yo proporcionaré (uno por entidad) al iniciar la app si la base de datos está vacía.
+
+📌 1. Requisitos generales
+
+La API debe:
+
+permitir CRUD completo para Productos, Categorías y (opcionalmente Clientes) — según instrucciones previas; en este trabajo actualmente sin clientes si ya lo acordamos
+
+recibir y servir imágenes
+
+usar PostgreSQL como base de datos en ejecución (no H2/Oracle/MySQL)
+
+permitir poblar la BD desde archivos JSON ubicados en src/main/resources/datos/ (los JSON me los dará el usuario) — el mecanismo debe ejecutar una carga inicial (seed) sólo si las tablas están vacías
+
+ser desplegable en Render sin configuraciones adicionales aparte de las variables de entorno
+
+Cada entidad debe tener:
+
+su modelo JPA (@Entity) — porque vamos a persistir en PostgreSQL
+
+su repositorio (JpaRepository)
+
+su servicio con la lógica de negocio
+
+su controlador REST (@RestController)
+
+(Nota: el uso de JPA es obligatorio aquí porque la persistencia en Postgres lo requiere.)
+
+📌 2. Persistencia y JSON de seed
+
+Crear carpeta en el proyecto (incluida en el repo, no en runtime):
+
+src/main/resources/datos/
+
+
+Archivos que yo entregaré (example names; la IA debe aceptar que los schemas pueden variar y adaptarlos en la fase final):
+
+productos.json
+categorias.json
+ubicaciones.json
+( clientes.json  — opcional según alcance )
+
+
+Implementar una clase DataLoader o InicializadorDatos que:
+
+En el arranque lea las tablas en la BD.
+
+Si una tabla está vacía, lea el JSON correspondiente con ObjectMapper (Jackson) y persista los registros en PostgreSQL (con repositorios JPA).
+
+Registrar logs indicando cuántos registros se cargaron.
+
+Si los registros ya existen (por ejemplo, mismo id o nombre), evitar duplicados o aplicar upsert según criterio (preferir evitar duplicados).
+
+No usar los JSON como la fuente de verdad en runtime — solo como seed/backup. Todas las operaciones CRUD deben afectar la BD.
+
+📌 3. Subida y acceso a imágenes
+
+Implementar endpoint para subir imágenes:
+
+POST /imagenes
+
+
+Recibe MultipartFile imagen
+
+Guarda el archivo en /uploads (ruta dentro del contenedor)
+
+Genera nombre único (UUID + extensión)
+
+Devuelve JSON con la URL pública:
+
+{
+  "url": "https://<mi-api>.onrender.com/imagenes/uuid.png"
+}
+
+
+Asegurar uploads se crea al iniciar si no existe.
+
+En las entidades Producto almacenar imagenUrl (string) con esa URL.
+
+Nota sobre Render: /uploads en Render no es persistente entre reinicios. Para evaluación esto está OK. (Los datos permanentes estarán en Postgres.)
+
+📌 4. Endpoints necesarios (nombres en español)
+Categorías
+GET    /categorias
+GET    /categorias/{id}
+POST   /categorias
+PUT    /categorias/{id}
+DELETE /categorias/{id}
+
+Productos
+GET    /productos
+GET    /productos/{id}
+POST   /productos       (multipart/form-data si incluye imagen; o JSON con imageUrl)
+PUT    /productos/{id}
+DELETE /productos/{id}
+
+
+POST /productos debe aceptar: nombre, descripcion, precio, categoriaId y imagen (archivo) o imagenBase64/imageUrl.
+
+Ubicaciones (Regiones y Comunas)
+GET /ubicaciones/regiones
+GET /ubicaciones/regiones/{id}/comunas
+
+
+Estas pueden venir del JSON ubicaciones.json (seed) y también pueden almacenarse en Postgres, o mantenerse como recurso en memoria — preferible persistir en BD para consistencia.
+
+Imágenes
+POST /imagenes
+GET  /imagenes/{archivo}
+
+📌 5. Modelos sugeridos (Java / JPA)
+Categoria
+@Entity
+public class Categoria {
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String nombre;
+  // getters/setters
+}
+
+Producto
+@Entity
+public class Producto {
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String nombre;
+  private String descripcion;
+  private double precio;
+  @ManyToOne
+  private Categoria categoria;
+  private String imagenUrl;
+  // getters/setters
+}
+
+Ubicacion y Comuna (opcional)
+@Entity class Region { @Id Long id; String nombre; @OneToMany List<Comuna> comunas; }
+@Entity class Comuna { @Id Long id; String nombre; @ManyToOne Region region; }
+
+
+(La IA debe adaptar tipos/atributos si los JSON que entregue el usuario tienen otros nombres/formatos.)
+
+📌 6. Seed/Inicialización (comportamiento esperado)
+
+Clase InicializadorDatos (annotated @Component o @Service) con @EventListener(ApplicationReadyEvent.class) o @PostConstruct.
+
+Para cada archivo JSON:
+
+Si tabla vacía, mapear JSON → entidades → saveAll() en su repositorio.
+
+Loguear resultado.
+
+Idempotencia: si el JSON tiene id pero la BD ya tiene registros, evitar duplicar; implementar lógica simple: si tabla vacía → insertar; si no vacía → no tocar.
+
+📌 7. Swagger (OpenAPI)
+
+Añadir org.springdoc:springdoc-openapi-starter-webmvc-ui en pom.xml.
+
+Documentación disponible en:
+
+/swagger-ui.html o /swagger-ui/index.html
+
+📌 8. Preparar para Render (application.properties / y variables)
+
+src/main/resources/application.properties:
+
+server.port=${PORT:8080}
+spring.datasource.url=${JDBC_DATABASE_URL:${DATABASE_URL}}
+spring.datasource.username=${DB_USER}
+spring.datasource.password=${DB_PASS}
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+spring.web.resources.static-locations=file:uploads/,classpath:/static/
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+
+Variables de entorno que deberá usar Render (documentarlas):
+
+DATABASE_URL o JDBC_DATABASE_URL (usar la que Render provea)
+
+DB_USER
+
+DB_PASS
+
+PORT (Render setea automáticamente)
+
+Aclaración: Algunas veces Render proporciona una única DATABASE_URL en formato postgres://user:pass@host:port/db; la IA deberá incluir utilidad para parsearla o usar la propiedad spring.datasource.url con la cadena correcta.
+
+📌 9. Estructura del proyecto sugerida (nombres en español)
+src/main/java/com/tuempresa/tiendaapi/
+    controllers/
+      CategoriaControlador.java
+      ProductoControlador.java
+      UbicacionControlador.java
+      ImagenControlador.java
+    services/
+      CategoriaServicio.java
+      ProductoServicio.java
+      UbicacionServicio.java
+      ImagenServicio.java
+    models/
+      Categoria.java
+      Producto.java
+      Region.java
+      Comuna.java
+    repositories/
+      CategoriaRepositorio.java
+      ProductoRepositorio.java
+      RegionRepositorio.java
+      ComunaRepositorio.java
+    config/
+      SwaggerConfig.java (opcional)
+    InicializadorDatos.java
+src/main/resources/datos/
+    categorias.json
+    productos.json
+    ubicaciones.json
+/uploads  (creada en runtime)
+
+📌 10. Buenas prácticas exigidas a la IA
+
+Validar IDs únicos y relaciones (ej. producto.categoriaId debe existir)
+
+Retornar errores claros en JSON (400, 404, 500)
+
+Manejar transacciones mínimas cuando corresponda
+
+Logs informativos en la carga inicial y en errores
+
+Código limpio y documentado
+
+Tests básicos (opcional pero recomendado)
+
+📌 11. Entregables esperados
+
+La IA debe devolver:
+
+Todos los archivos Java (controladores, servicios, repositorios, modelos, config).
+
+pom.xml actualizado.
+
+application.properties.
+
+src/main/resources/datos/*.json (puede contener ejemplos; el usuario dará los archivos finales).
+
+README.md con:
+
+pasos para ejecutar local (mvn spring-boot:run)
+
+cómo crear la base de datos en Render y poner las env vars
+
+cómo desplegar en Render desde GitHub
+
+cómo usar Swagger y probar endpoints
+
+Explicación de cómo la carga JSON → Postgres funciona y cómo reemplazar los JSON por otros que entregue el usuario.
+
+ACLARACIONES IMPORTANTES — LEE ANTES DE IMPLEMENTAR
+
+Fuente de verdad: en tiempo de ejecución la BD PostgreSQL es la fuente de verdad; los JSON son sólo seed inicial.
+
+Imágenes: /uploads no es persistente en Render; si necesitas persistencia de imágenes en producción, deberías usar S3/Cloudinary (no obligatorio para evaluación).
+
+Formato de JSON: yo (usuario) te entregaré los JSON con el formato final — la IA deberá adaptar los modelos si hay diferencias de campo/nombres.
+
+Conexión a la BD de Render: la IA debe preparar el application.properties y la lógica para leer DATABASE_URL/JDBC_DATABASE_URL y credenciales desde env vars.
+
+Manejo de IDs: la BD generará IDs con IDENTITY; si los JSON iniciales traen ids, la IA puede insertarlos respetando esos ids o dejar que BD los reasigne; decide e indica el comportamiento en el README.
