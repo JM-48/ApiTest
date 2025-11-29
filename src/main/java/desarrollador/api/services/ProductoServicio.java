@@ -34,6 +34,9 @@ public class ProductoServicio {
         if (producto.getPrecio() <= 0) {
             throw new IllegalArgumentException("Precio debe ser mayor a 0");
         }
+        if (producto.getStock() != null && producto.getStock() < 0) {
+            throw new IllegalArgumentException("Stock debe ser mayor o igual a 0");
+        }
         Categoria categoria = categoriaRepositorio.findById(categoriaId)
                 .orElseThrow(() -> new NoSuchElementException("Categoria no encontrada"));
         producto.setCategoria(categoria);
@@ -55,6 +58,9 @@ public class ProductoServicio {
             existente.setImagenUrl(cambios.getImagenUrl());
         }
         if (cambios.getStock() != null) {
+            if (cambios.getStock() < 0) {
+                throw new IllegalArgumentException("Stock debe ser mayor o igual a 0");
+            }
             existente.setStock(cambios.getStock());
         }
         if (categoriaId != null) {

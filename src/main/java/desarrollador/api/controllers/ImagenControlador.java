@@ -6,6 +6,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.Map;
 
@@ -19,6 +20,7 @@ public class ImagenControlador {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir imagen")
     public ResponseEntity<?> subir(@RequestPart("imagen") MultipartFile imagen,
                                    @RequestHeader(value = "X-Base-Url", required = false) String baseUrl) {
         try {
@@ -31,6 +33,7 @@ public class ImagenControlador {
     }
 
     @GetMapping("/{archivo}")
+    @Operation(summary = "Obtener imagen por nombre de archivo")
     public ResponseEntity<Resource> obtener(@PathVariable String archivo) {
         Resource r = servicio.obtener(archivo);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(r);

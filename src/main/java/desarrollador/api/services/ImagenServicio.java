@@ -32,7 +32,7 @@ public class ImagenServicio {
         String nombre = UUID.randomUUID() + extension;
         Path destino = uploadsDir.resolve(nombre);
         Files.copy(imagen.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-        return baseUrl + "/imagenes/" + nombre;
+        return baseUrl + "/uploads/" + nombre;
     }
 
     public Resource obtener(String archivo) {

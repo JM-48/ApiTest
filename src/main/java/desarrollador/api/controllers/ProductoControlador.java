@@ -1,46 +1,58 @@
 package desarrollador.api.controllers;
 
+import desarrollador.api.dto.ProductoDTO;
+import desarrollador.api.models.Categoria;
 import desarrollador.api.models.Producto;
+import desarrollador.api.repositories.CategoriaRepositorio;
 import desarrollador.api.services.ImagenServicio;
 import desarrollador.api.services.ProductoServicio;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import io.swagger.v3.oas.annotations.Operation;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/productos")
 public class ProductoControlador {
     private final ProductoServicio servicio;
     private final ImagenServicio imagenServicio;
+    private final CategoriaRepositorio categoriaRepositorio;
 
-    public ProductoControlador(ProductoServicio servicio, ImagenServicio imagenServicio) {
+    public ProductoControlador(ProductoServicio servicio, ImagenServicio imagenServicio, CategoriaRepositorio categoriaRepositorio) {
         this.servicio = servicio;
         this.imagenServicio = imagenServicio;
+        this.categoriaRepositorio = categoriaRepositorio;
     }
 
     @GetMapping
-    public List<Producto> listar() {
-        return servicio.listar();
+    @Operation(summary = "Listar productos")
+    public List<ProductoDTO> listar() {
+        return servicio.listar().stream().map(ProductoDTO::fromEntity).collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener producto por id")
     public ResponseEntity<?> obtener(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(servicio.obtener(id));
+            Producto p = servicio.obtener(id);
+            return ResponseEntity.ok(ProductoDTO.fromEntity(p));
         } catch (Exception e) {
             return ResponseEntity.status(404).body("Producto no encontrado");
         }
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Crear producto con imagen (multipart/form-data)")
     public ResponseEntity<?> crearMultipart(@RequestParam String nombre,
                                             @RequestParam(required = false) String descripcion,
                                             @RequestParam double precio,
-                                            @RequestParam Long categoriaId,
+                                            @RequestParam String tipo,
+                                            @RequestParam(required = false) Integer stock,
                                             @RequestPart(required = false) MultipartFile imagen,
                                             @RequestHeader(value = "X-Base-Url", required = false) String baseUrl) {
         try {
@@ -48,13 +60,22 @@ public class ProductoControlador {
             p.setNombre(nombre);
             p.setDescripcion(descripcion);
             p.setPrecio(precio);
+            p.setStock(stock);
             if (imagen != null) {
                 String urlBase = baseUrl != null ? baseUrl : "";
                 String url = imagenServicio.guardar(imagen, urlBase);
                 p.setImagenUrl(url);
             }
+            Long categoriaId = categoriaRepositorio.findByNombreIgnoreCase(tipo)
+                    .map(Categoria::getId)
+                    .orElseGet(() -> {
+                        Categoria c = new Categoria();
+                        c.setNombre(tipo);
+                        Categoria guardada = categoriaRepositorio.save(c);
+                        return guardada.getId();
+                    });
             Producto creado = servicio.crear(p, categoriaId);
-            return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(creado);
+            return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(ProductoDTO.fromEntity(creado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
