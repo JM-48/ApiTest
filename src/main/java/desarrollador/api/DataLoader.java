@@ -10,6 +10,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -23,17 +26,18 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (productoRepositorio.count() > 0) {
-            log.info("Tabla Producto con datos, no se cargan productos");
-            return;
-        }
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("productos.json");
         if (is == null) {
             log.info("Archivo productos.json no encontrado en resources");
             return;
         }
         JsonNode node = mapper.readTree(is);
-        if (node != null && node.isArray()) {
+        if (node == null || !node.isArray()) {
+            return;
+        }
+
+        long count = productoRepositorio.count();
+        if (count == 0) {
             int total = 0;
             for (JsonNode n : node) {
                 String nombre = textOf(n, "nombre");
@@ -55,6 +59,31 @@ public class DataLoader implements CommandLineRunner {
                 }
             }
             log.info("Productos cargados correctamente: {}", total);
+            return;
+        }
+
+        Map<String, String> tiposPorNombre = new HashMap<>();
+        for (JsonNode n : node) {
+            String nombre = textOf(n, "nombre");
+            String tipo = textOf(n, "tipo");
+            if (nombre != null && tipo != null) {
+                tiposPorNombre.put(nombre.toLowerCase().trim(), tipo.trim());
+            }
+        }
+        List<Producto> existentes = productoRepositorio.findAll();
+        int actualizados = 0;
+        for (Producto p : existentes) {
+            if (p.getCategoriaNombre() == null && p.getNombre() != null) {
+                String t = tiposPorNombre.get(p.getNombre().toLowerCase().trim());
+                if (t != null) {
+                    p.setCategoriaNombre(t);
+                    productoRepositorio.save(p);
+                    actualizados++;
+                }
+            }
+        }
+        if (actualizados > 0) {
+            log.info("Productos actualizados categoria desde JSON: {}", actualizados);
         }
     }
 
