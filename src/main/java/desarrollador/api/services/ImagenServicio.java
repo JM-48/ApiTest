@@ -1,5 +1,7 @@
 package desarrollador.api.services;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -15,8 +17,14 @@ import java.util.UUID;
 @Service
 public class ImagenServicio {
     private final Path uploadsDir = Path.of("uploads");
+    private final Environment env;
 
-    public ImagenServicio() {
+    public ImagenServicio(Environment env) {
+        this.env = env;
+    }
+
+    @PostConstruct
+    public void init() {
         try {
             Files.createDirectories(uploadsDir);
         } catch (IOException ignored) {
@@ -32,7 +40,18 @@ public class ImagenServicio {
         String nombre = UUID.randomUUID() + extension;
         Path destino = uploadsDir.resolve(nombre);
         Files.copy(imagen.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
-        return baseUrl + "/uploads/" + nombre;
+        String base = baseUrl;
+        if (base == null || base.isBlank()) {
+            String renderUrl = env.getProperty("RENDER_EXTERNAL_URL");
+            if (renderUrl == null || renderUrl.isBlank()) {
+                renderUrl = System.getenv("RENDER_EXTERNAL_URL");
+            }
+            base = renderUrl != null ? renderUrl : "";
+        }
+        if (base.endsWith("/")) {
+            base = base.substring(0, base.length() - 1);
+        }
+        return base + "/uploads/" + nombre;
     }
 
     public Resource obtener(String archivo) {
