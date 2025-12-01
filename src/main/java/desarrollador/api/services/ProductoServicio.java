@@ -1,8 +1,6 @@
 package desarrollador.api.services;
 
-import desarrollador.api.models.Categoria;
 import desarrollador.api.models.Producto;
-import desarrollador.api.repositories.CategoriaRepositorio;
 import desarrollador.api.repositories.ProductoRepositorio;
 import org.springframework.stereotype.Service;
 
@@ -12,11 +10,9 @@ import java.util.NoSuchElementException;
 @Service
 public class ProductoServicio {
     private final ProductoRepositorio productoRepositorio;
-    private final CategoriaRepositorio categoriaRepositorio;
 
-    public ProductoServicio(ProductoRepositorio productoRepositorio, CategoriaRepositorio categoriaRepositorio) {
+    public ProductoServicio(ProductoRepositorio productoRepositorio) {
         this.productoRepositorio = productoRepositorio;
-        this.categoriaRepositorio = categoriaRepositorio;
     }
 
     public List<Producto> listar() {
@@ -37,9 +33,6 @@ public class ProductoServicio {
         if (producto.getStock() != null && producto.getStock() < 0) {
             throw new IllegalArgumentException("Stock debe ser mayor o igual a 0");
         }
-        Categoria categoria = categoriaRepositorio.findById(categoriaId)
-                .orElseThrow(() -> new NoSuchElementException("Categoria no encontrada"));
-        producto.setCategoria(categoria);
         return productoRepositorio.save(producto);
     }
 
@@ -63,12 +56,16 @@ public class ProductoServicio {
             }
             existente.setStock(cambios.getStock());
         }
-        if (categoriaId != null) {
-            Categoria categoria = categoriaRepositorio.findById(categoriaId)
-                    .orElseThrow(() -> new NoSuchElementException("Categoria no encontrada"));
-            existente.setCategoria(categoria);
+        if (cambios.getCategoriaNombre() != null) {
+            existente.setCategoriaNombre(cambios.getCategoriaNombre());
         }
         return productoRepositorio.save(existente);
+    }
+
+    public Producto actualizarImagen(Long id, String imagenUrl) {
+        Producto p = obtener(id);
+        p.setImagenUrl(imagenUrl);
+        return productoRepositorio.save(p);
     }
 
     public void eliminar(Long id) {

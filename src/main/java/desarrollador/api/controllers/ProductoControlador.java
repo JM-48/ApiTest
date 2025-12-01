@@ -1,10 +1,8 @@
 package desarrollador.api.controllers;
 
 import desarrollador.api.dto.ProductoDTO;
-import desarrollador.api.models.Categoria;
 import desarrollador.api.models.Producto;
-import desarrollador.api.repositories.CategoriaRepositorio;
-import desarrollador.api.services.ImagenServicio;
+import desarrollador.api.services.ImagenCloudService;
 import desarrollador.api.services.ProductoServicio;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +18,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/productos")
 public class ProductoControlador {
     private final ProductoServicio servicio;
-    private final ImagenServicio imagenServicio;
-    private final CategoriaRepositorio categoriaRepositorio;
+    private final ImagenCloudService imagenCloudService;
 
-    public ProductoControlador(ProductoServicio servicio, ImagenServicio imagenServicio, CategoriaRepositorio categoriaRepositorio) {
+    public ProductoControlador(ProductoServicio servicio, ImagenCloudService imagenCloudService) {
         this.servicio = servicio;
-        this.imagenServicio = imagenServicio;
-        this.categoriaRepositorio = categoriaRepositorio;
+        this.imagenCloudService = imagenCloudService;
     }
 
     @GetMapping
@@ -53,28 +49,19 @@ public class ProductoControlador {
                                             @RequestParam double precio,
                                             @RequestParam String tipo,
                                             @RequestParam(required = false) Integer stock,
-                                            @RequestPart(required = false) MultipartFile imagen,
-                                            @RequestHeader(value = "X-Base-Url", required = false) String baseUrl) {
+                                            @RequestPart(required = false) MultipartFile imagen) {
         try {
             Producto p = new Producto();
             p.setNombre(nombre);
             p.setDescripcion(descripcion);
             p.setPrecio(precio);
             p.setStock(stock);
+            p.setCategoriaNombre(tipo);
             if (imagen != null) {
-                String urlBase = baseUrl != null ? baseUrl : "";
-                String url = imagenServicio.guardar(imagen, urlBase);
+                String url = imagenCloudService.subirImagen(imagen);
                 p.setImagenUrl(url);
             }
-            Long categoriaId = categoriaRepositorio.findByNombreIgnoreCase(tipo)
-                    .map(Categoria::getId)
-                    .orElseGet(() -> {
-                        Categoria c = new Categoria();
-                        c.setNombre(tipo);
-                        Categoria guardada = categoriaRepositorio.save(c);
-                        return guardada.getId();
-                    });
-            Producto creado = servicio.crear(p, categoriaId);
+            Producto creado = servicio.crear(p, null);
             return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(ProductoDTO.fromEntity(creado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -102,6 +89,20 @@ public class ProductoControlador {
                                         @RequestParam(required = false) Long categoriaId) {
         try {
             return ResponseEntity.ok(servicio.actualizar(id, cambios, categoriaId));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
+    @PostMapping(path = "/{id}/imagen", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Subir imagen de producto a Cloudinary")
+    public ResponseEntity<?> subirImagen(@PathVariable Long id, @RequestPart("imagen") MultipartFile imagen) {
+        try {
+            String url = imagenCloudService.subirImagen(imagen);
+            servicio.actualizarImagen(id, url);
+            return ResponseEntity.ok(java.util.Map.of("url", url));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

@@ -32,7 +32,7 @@ public class SeguridadConfig {
         http.csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/productos/**", "/uploads/**").permitAll()
+                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/productos/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFiltro, UsernamePasswordAuthenticationFilter.class);

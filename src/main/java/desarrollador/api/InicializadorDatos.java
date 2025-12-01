@@ -2,14 +2,12 @@ package desarrollador.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import desarrollador.api.models.Categoria;
 import desarrollador.api.models.Producto;
 import desarrollador.api.models.Profile;
 import desarrollador.api.models.Role;
 import desarrollador.api.models.User;
 import desarrollador.api.repositories.UserRepositorio;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import desarrollador.api.repositories.CategoriaRepositorio;
 import desarrollador.api.repositories.ProductoRepositorio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,24 +18,18 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 @Component
 public class InicializadorDatos {
-    private final CategoriaRepositorio categoriaRepositorio;
     private final ProductoRepositorio productoRepositorio;
     private final ObjectMapper mapper = new ObjectMapper();
     private final UserRepositorio userRepositorio;
     private final PasswordEncoder passwordEncoder;
     private final Logger log = LoggerFactory.getLogger(InicializadorDatos.class);
 
-    public InicializadorDatos(CategoriaRepositorio categoriaRepositorio,
-                              ProductoRepositorio productoRepositorio,
+    public InicializadorDatos(ProductoRepositorio productoRepositorio,
                               UserRepositorio userRepositorio,
                               PasswordEncoder passwordEncoder) {
-        this.categoriaRepositorio = categoriaRepositorio;
         this.productoRepositorio = productoRepositorio;
         this.userRepositorio = userRepositorio;
         this.passwordEncoder = passwordEncoder;
@@ -46,63 +38,9 @@ public class InicializadorDatos {
     @EventListener(ApplicationReadyEvent.class)
     public void cargar() {
         try {
-            cargarCategoriasSiVacio();
             cargarAdminSiNoExiste();
         } catch (Exception e) {
             log.warn("Fallo en carga inicial", e);
-        }
-    }
-
-    private void cargarCategoriasSiVacio() throws IOException {
-        if (categoriaRepositorio.count() > 0) return;
-        JsonNode node = leerJson("categorias.json", "datos/categorias.json");
-        if (node != null && node.isArray()) {
-            List<Categoria> list = new ArrayList<>();
-            for (JsonNode n : node) {
-                String nombre = n.asText();
-                if (nombre != null && !nombre.isBlank()) {
-                    Categoria c = new Categoria();
-                    c.setNombre(nombre);
-                    list.add(c);
-                }
-            }
-            categoriaRepositorio.saveAll(list);
-            log.info("Categorias cargadas: {}", list.size());
-        }
-    }
-
-
-    private void cargarProductosSiVacio() throws IOException {
-        if (productoRepositorio.count() > 0) return;
-        JsonNode node = leerJson("productos.json", "datos/productos.json");
-        if (node != null && node.isArray()) {
-            int total = 0;
-            for (JsonNode n : node) {
-                String nombre = textOf(n, "nombre");
-                String descripcion = textOf(n, "descripcion");
-                double precio = n.has("precio") ? n.get("precio").asDouble() : 0;
-                String tipo = textOf(n, "tipo");
-                String imagen = textOf(n, "imagen");
-                Integer stock = n.has("stock") ? n.get("stock").asInt() : null;
-                if (nombre != null && tipo != null) {
-                    Categoria categoria = categoriaRepositorio.findByNombreIgnoreCase(tipo)
-                            .orElseGet(() -> {
-                                Categoria c = new Categoria();
-                                c.setNombre(tipo);
-                                return categoriaRepositorio.save(c);
-                            });
-                    Producto p = new Producto();
-                    p.setNombre(nombre);
-                    p.setDescripcion(descripcion);
-                    p.setPrecio(precio);
-                    p.setCategoria(categoria);
-                    p.setImagenUrl(imagen);
-                    p.setStock(stock);
-                    productoRepositorio.save(p);
-                    total++;
-                }
-            }
-            log.info("Productos cargados: {}", total);
         }
     }
 
@@ -130,9 +68,5 @@ public class InicializadorDatos {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private String textOf(JsonNode n, String field) {
-        return n.has(field) && !n.get(field).isNull() ? n.get(field).asText() : null;
     }
 }

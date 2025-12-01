@@ -2,9 +2,7 @@ package desarrollador.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import desarrollador.api.models.Categoria;
 import desarrollador.api.models.Producto;
-import desarrollador.api.repositories.CategoriaRepositorio;
 import desarrollador.api.repositories.ProductoRepositorio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,13 +14,11 @@ import java.io.InputStream;
 @Component
 public class DataLoader implements CommandLineRunner {
     private final ProductoRepositorio productoRepositorio;
-    private final CategoriaRepositorio categoriaRepositorio;
     private final ObjectMapper mapper = new ObjectMapper();
     private final Logger log = LoggerFactory.getLogger(DataLoader.class);
 
-    public DataLoader(ProductoRepositorio productoRepositorio, CategoriaRepositorio categoriaRepositorio) {
+    public DataLoader(ProductoRepositorio productoRepositorio) {
         this.productoRepositorio = productoRepositorio;
-        this.categoriaRepositorio = categoriaRepositorio;
     }
 
     @Override
@@ -47,17 +43,11 @@ public class DataLoader implements CommandLineRunner {
                 String imagen = textOf(n, "imagen");
                 Integer stock = n.has("stock") ? n.get("stock").asInt() : null;
                 if (nombre != null && tipo != null) {
-                    Categoria categoria = categoriaRepositorio.findByNombreIgnoreCase(tipo)
-                            .orElseGet(() -> {
-                                Categoria c = new Categoria();
-                                c.setNombre(tipo);
-                                return categoriaRepositorio.save(c);
-                            });
                     Producto p = new Producto();
                     p.setNombre(nombre);
                     p.setDescripcion(descripcion);
                     p.setPrecio(precio);
-                    p.setCategoria(categoria);
+                    p.setCategoriaNombre(tipo);
                     p.setImagenUrl(imagen);
                     p.setStock(stock);
                     productoRepositorio.save(p);

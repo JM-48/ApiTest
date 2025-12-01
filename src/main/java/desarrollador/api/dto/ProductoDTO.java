@@ -25,7 +25,7 @@ public class ProductoDTO {
     }
 
     public static ProductoDTO fromEntity(Producto p) {
-        String t = p.getCategoria() != null ? p.getCategoria().getNombre() : null;
+        String t = p.getCategoriaNombre();
         return new ProductoDTO(p.getId(), p.getNombre(), p.getDescripcion(), t, p.getPrecio(), p.getImagenUrl(), p.getStock());
     }
 
@@ -85,4 +85,3 @@ public class ProductoDTO {
         this.stock = stock;
     }
 }
-
