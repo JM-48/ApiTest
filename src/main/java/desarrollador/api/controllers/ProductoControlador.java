@@ -109,6 +109,23 @@ public class ProductoControlador {
         }
     }
 
+    @PostMapping(path = "/{id}/imagen", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Actualizar imagen de producto con URL existente")
+    public ResponseEntity<?> actualizarImagenPorUrl(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        try {
+            String url = body == null ? null : body.get("url");
+            if (url == null || url.isBlank()) {
+                return ResponseEntity.badRequest().body("url requerida");
+            }
+            servicio.actualizarImagen(id, url);
+            return ResponseEntity.ok(java.util.Map.of("url", url));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
