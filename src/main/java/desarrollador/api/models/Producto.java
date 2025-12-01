@@ -1,5 +1,6 @@
 package desarrollador.api.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -18,6 +19,7 @@ public class Producto {
     private double precio;
 
     @Column
+    @JsonProperty("tipo")
     private String categoriaNombre;
 
     private String imagenUrl;
