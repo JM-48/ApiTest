@@ -61,7 +61,7 @@ public class ProductoControlador {
                 String url = imagenCloudService.subirImagen(imagen);
                 p.setImagenUrl(url);
             }
-            Producto creado = servicio.crear(p, null);
+            Producto creado = servicio.crear(p);
             return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(ProductoDTO.fromEntity(creado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -71,10 +71,9 @@ public class ProductoControlador {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> crearJson(@RequestBody Producto payload,
-                                       @RequestParam Long categoriaId) {
+    public ResponseEntity<?> crearJson(@RequestBody Producto payload) {
         try {
-            Producto creado = servicio.crear(payload, categoriaId);
+            Producto creado = servicio.crear(payload);
             return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(creado);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

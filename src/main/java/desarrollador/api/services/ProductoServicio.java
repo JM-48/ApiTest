@@ -23,7 +23,7 @@ public class ProductoServicio {
         return productoRepositorio.findById(id).orElseThrow(() -> new NoSuchElementException("Producto no encontrado"));
     }
 
-    public Producto crear(Producto producto, Long categoriaId) {
+    public Producto crear(Producto producto) {
         if (producto.getNombre() == null || producto.getNombre().isBlank()) {
             throw new IllegalArgumentException("Nombre requerido");
         }
