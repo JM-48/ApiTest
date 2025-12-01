@@ -29,7 +29,8 @@ public class SeguridadConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.cors(cors -> {})
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/productos/**", "/imagenes/**").permitAll()
@@ -61,5 +62,22 @@ public class SeguridadConfig {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
                         ));
+    }
+
+    @Bean
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource(org.springframework.core.env.Environment env) {
+        String originsProp = env.getProperty("ALLOWED_ORIGINS");
+        java.util.List<String> origins = (originsProp != null && !originsProp.isBlank())
+                ? java.util.Arrays.stream(originsProp.split(",")).map(String::trim).toList()
+                : java.util.Arrays.asList("http://localhost:5173", "https://TU_DOMINIO_WEB");
+        org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
+        config.setAllowedOrigins(origins);
+        config.setAllowedMethods(java.util.Arrays.asList("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        config.setAllowedHeaders(java.util.Arrays.asList("Content-Type","Authorization"));
+        config.setAllowCredentials(false);
+        config.setMaxAge(3600L);
+        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
