@@ -36,7 +36,7 @@ public class ProductoServicio {
         return productoRepositorio.save(producto);
     }
 
-    public Producto actualizar(Long id, Producto cambios, Long categoriaId) {
+    public Producto actualizar(Long id, Producto cambios) {
         Producto existente = obtener(id);
         if (cambios.getNombre() != null && !cambios.getNombre().isBlank()) {
             existente.setNombre(cambios.getNombre());

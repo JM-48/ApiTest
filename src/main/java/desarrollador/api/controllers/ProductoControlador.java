@@ -85,10 +85,9 @@ public class ProductoControlador {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id,
-                                        @RequestBody Producto cambios,
-                                        @RequestParam(required = false) Long categoriaId) {
+                                        @RequestBody Producto cambios) {
         try {
-            return ResponseEntity.ok(servicio.actualizar(id, cambios, categoriaId));
+            return ResponseEntity.ok(servicio.actualizar(id, cambios));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
