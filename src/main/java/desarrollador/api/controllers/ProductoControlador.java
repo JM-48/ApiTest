@@ -47,7 +47,7 @@ public class ProductoControlador {
     public ResponseEntity<?> crearMultipart(@RequestParam String nombre,
                                             @RequestParam(required = false) String descripcion,
                                             @RequestParam double precio,
-                                            @RequestParam String categoriaNombre,
+                                            @RequestParam String tipo,
                                             @RequestParam(required = false) Integer stock,
                                             @RequestPart(required = false) MultipartFile imagen) {
         try {
@@ -56,7 +56,7 @@ public class ProductoControlador {
             p.setDescripcion(descripcion);
             p.setPrecio(precio);
             p.setStock(stock);
-            p.setCategoriaNombre(categoriaNombre);
+            p.setCategoriaNombre(tipo);
             if (imagen != null) {
                 String url = imagenCloudService.subirImagen(imagen);
                 p.setImagenUrl(url);
