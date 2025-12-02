@@ -47,7 +47,7 @@ public class ProductoControlador {
     public ResponseEntity<?> crearMultipart(@RequestParam String nombre,
                                             @RequestParam(required = false) String descripcion,
                                             @RequestParam double precio,
-                                            @RequestParam String tipo,
+                                            @RequestParam String categoriaNombre,
                                             @RequestParam(required = false) Integer stock,
                                             @RequestPart(required = false) MultipartFile imagen) {
         try {
@@ -56,7 +56,7 @@ public class ProductoControlador {
             p.setDescripcion(descripcion);
             p.setPrecio(precio);
             p.setStock(stock);
-            p.setCategoriaNombre(tipo);
+            p.setCategoriaNombre(categoriaNombre);
             if (imagen != null) {
                 String url = imagenCloudService.subirImagen(imagen);
                 p.setImagenUrl(url);
@@ -74,7 +74,7 @@ public class ProductoControlador {
     public ResponseEntity<?> crearJson(@RequestBody Producto payload) {
         try {
             Producto creado = servicio.crear(payload);
-            return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(creado);
+            return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(ProductoDTO.fromEntity(creado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

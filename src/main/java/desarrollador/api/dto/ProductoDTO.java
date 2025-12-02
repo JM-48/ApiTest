@@ -6,27 +6,26 @@ public class ProductoDTO {
     private Long id;
     private String nombre;
     private String descripcion;
-    private String tipo;
+    private String categoriaNombre;
     private double precio;
-    private String imagen;
+    private String imagenUrl;
     private Integer stock;
 
     public ProductoDTO() {
     }
 
-    public ProductoDTO(Long id, String nombre, String descripcion, String tipo, double precio, String imagen, Integer stock) {
+    public ProductoDTO(Long id, String nombre, String descripcion, String categoriaNombre, double precio, String imagenUrl, Integer stock) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
-        this.tipo = tipo;
+        this.categoriaNombre = categoriaNombre;
         this.precio = precio;
-        this.imagen = imagen;
+        this.imagenUrl = imagenUrl;
         this.stock = stock;
     }
 
     public static ProductoDTO fromEntity(Producto p) {
-        String t = p.getCategoriaNombre();
-        return new ProductoDTO(p.getId(), p.getNombre(), p.getDescripcion(), t, p.getPrecio(), p.getImagenUrl(), p.getStock());
+        return new ProductoDTO(p.getId(), p.getNombre(), p.getDescripcion(), p.getCategoriaNombre(), p.getPrecio(), p.getImagenUrl(), p.getStock());
     }
 
     public Long getId() {
@@ -53,12 +52,12 @@ public class ProductoDTO {
         this.descripcion = descripcion;
     }
 
-    public String getTipo() {
-        return tipo;
+    public String getCategoriaNombre() {
+        return categoriaNombre;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public void setCategoriaNombre(String categoriaNombre) {
+        this.categoriaNombre = categoriaNombre;
     }
 
     public double getPrecio() {
@@ -69,12 +68,12 @@ public class ProductoDTO {
         this.precio = precio;
     }
 
-    public String getImagen() {
-        return imagen;
+    public String getImagenUrl() {
+        return imagenUrl;
     }
 
-    public void setImagen(String imagen) {
-        this.imagen = imagen;
+    public void setImagenUrl(String imagenUrl) {
+        this.imagenUrl = imagenUrl;
     }
 
     public Integer getStock() {
