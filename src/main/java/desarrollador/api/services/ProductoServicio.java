@@ -31,7 +31,7 @@ public class ProductoServicio {
             throw new IllegalArgumentException("Precio debe ser mayor a 0");
         }
         if (producto.getStock() != null && producto.getStock() < 0) {
-            throw new IllegalArgumentException("Stock debe ser mayor o igual a 0");
+            producto.setStock(0);
         }
         return productoRepositorio.save(producto);
     }
@@ -52,9 +52,10 @@ public class ProductoServicio {
         }
         if (cambios.getStock() != null) {
             if (cambios.getStock() < 0) {
-                throw new IllegalArgumentException("Stock debe ser mayor o igual a 0");
+                existente.setStock(0);
+            } else {
+                existente.setStock(cambios.getStock());
             }
-            existente.setStock(cambios.getStock());
         }
         if (cambios.getCategoriaNombre() != null) {
             existente.setCategoriaNombre(cambios.getCategoriaNombre());

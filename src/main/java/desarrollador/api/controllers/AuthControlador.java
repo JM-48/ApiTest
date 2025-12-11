@@ -27,6 +27,7 @@ public class AuthControlador {
         p.setApellido(req.apellido);
         p.setTelefono(req.telefono);
         p.setDireccion(req.direccion);
+        p.setRegion(req.region);
         p.setCiudad(req.ciudad);
         p.setCodigoPostal(req.codigoPostal);
         Role role = req.role != null ? Role.valueOf(req.role.toUpperCase()) : Role.USER;

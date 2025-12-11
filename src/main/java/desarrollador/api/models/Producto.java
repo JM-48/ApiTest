@@ -12,7 +12,7 @@ public class Producto {
     @Column(nullable = false)
     private String nombre;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
     @Column(nullable = false)

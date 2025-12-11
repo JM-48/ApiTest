@@ -12,6 +12,7 @@ public class AuthDtos {
         public String apellido;
         public String telefono;
         public String direccion;
+        public String region;
         public String ciudad;
         public String codigoPostal;
         public String role;
@@ -32,6 +33,8 @@ public class AuthDtos {
         public String email;
         public String role;
         public Profile profile;
+        public String region;
+        public String ciudad;
 
         public static UserDto from(User u) {
             UserDto d = new UserDto();
@@ -39,6 +42,10 @@ public class AuthDtos {
             d.email = u.getEmail();
             d.role = u.getRole() != null ? u.getRole().name() : Role.USER.name();
             d.profile = u.getProfile();
+            if (u.getProfile() != null) {
+                d.region = u.getProfile().getRegion();
+                d.ciudad = u.getProfile().getCiudad();
+            }
             return d;
         }
     }
