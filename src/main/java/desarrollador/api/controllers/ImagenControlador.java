@@ -21,6 +21,9 @@ public class ImagenControlador {
     public ResponseEntity<?> subir(@RequestPart("imagen") MultipartFile imagen) {
         try {
             String url = imagenCloudService.subirImagen(imagen);
+            if (url == null || url.isBlank()) {
+                return ResponseEntity.status(500).body(java.util.Map.of("error", "upload_failed"));
+            }
             return ResponseEntity.ok(java.util.Map.of("url", url));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

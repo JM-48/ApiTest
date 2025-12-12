@@ -1,5 +1,6 @@
 package desarrollador.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import desarrollador.api.models.Profile;
 import desarrollador.api.models.Role;
 import desarrollador.api.models.User;
@@ -23,11 +24,13 @@ public class AuthDtos {
         public String password;
     }
 
+    @JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public static class LoginResponse {
         public String token;
         public UserDto user;
     }
 
+    @JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public static class UserDto {
         public Long id;
         public String email;

@@ -71,7 +71,7 @@ public class ProductoControlador {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> crearJson(@RequestBody Producto payload) {
+    public ResponseEntity<?> crearJson(@jakarta.validation.Valid @RequestBody Producto payload) {
         try {
             Producto creado = servicio.crear(payload);
             return ResponseEntity.created(URI.create("/productos/" + creado.getId())).body(ProductoDTO.fromEntity(creado));
@@ -84,7 +84,7 @@ public class ProductoControlador {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizar(@PathVariable Long id,
-                                        @RequestBody Producto cambios) {
+                                        @jakarta.validation.Valid @RequestBody Producto cambios) {
         try {
             return ResponseEntity.ok(servicio.actualizar(id, cambios));
         } catch (IllegalArgumentException e) {

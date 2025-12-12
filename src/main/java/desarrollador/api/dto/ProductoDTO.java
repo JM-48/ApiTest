@@ -1,7 +1,9 @@
 package desarrollador.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import desarrollador.api.models.Producto;
 
+@JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
 public class ProductoDTO {
     private Long id;
     private String nombre;
