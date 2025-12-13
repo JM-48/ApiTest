@@ -33,8 +33,29 @@ public class SeguridadConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/productos/**", "/imagenes/**").permitAll()
+                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/productos/**").permitAll()
+                        .requestMatchers("/imagenes/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/productos/**").hasAnyRole("ADMIN","PROD_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/productos/**").hasAnyRole("ADMIN","PROD_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/productos/**").hasAnyRole("ADMIN","PROD_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/users").hasAnyRole("ADMIN","USER_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/users").hasAnyRole("ADMIN","USER_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/users/**").hasAnyRole("ADMIN","USER_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/users/**").hasAnyRole("ADMIN","USER_AD")
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, e) -> {
+                            res.setStatus(401);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"Token requerido\"}");
+                        })
+                        .accessDeniedHandler((req, res, e) -> {
+                            res.setStatus(403);
+                            res.setContentType("application/json");
+                            res.getWriter().write("{\"error\":\"forbidden\",\"message\":\"Acceso denegado\"}");
+                        })
                 )
                 .addFilterBefore(jwtFiltro, UsernamePasswordAuthenticationFilter.class);
         return http.build();

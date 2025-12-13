@@ -30,6 +30,24 @@ public class UsuarioControlador {
         return ResponseEntity.ok(AuthDtos.UserDto.from(u));
     }
 
+    @GetMapping("/me/datos-compra")
+    public ResponseEntity<?> datosCompra(Authentication auth) {
+        User u = servicio.me(auth.getName());
+        Profile p = u.getProfile();
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        if (p == null || p.getNombre() == null || p.getNombre().isBlank()) missing.add("nombre");
+        if (p == null || p.getApellido() == null || p.getApellido().isBlank()) missing.add("apellido");
+        if (p == null || p.getTelefono() == null || p.getTelefono().isBlank()) missing.add("telefono");
+        if (p == null || p.getDireccion() == null || p.getDireccion().isBlank()) missing.add("direccion");
+        if (p == null || p.getRegion() == null || p.getRegion().isBlank()) missing.add("region");
+        if (p == null || p.getCiudad() == null || p.getCiudad().isBlank()) missing.add("ciudad");
+        if (p == null || p.getCodigoPostal() == null || p.getCodigoPostal().isBlank()) missing.add("codigoPostal");
+        return ResponseEntity.ok(java.util.Map.of(
+                "user", AuthDtos.UserDto.from(u),
+                "missing", missing
+        ));
+    }
+
     @PatchMapping("/me")
     public ResponseEntity<?> actualizar(Authentication auth, @RequestBody Profile profile) {
         User u = servicio.actualizarPerfil(auth.getName(), profile);
@@ -37,14 +55,14 @@ public class UsuarioControlador {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
     public ResponseEntity<?> obtener(@PathVariable Long id) {
         User u = servicio.obtener(id);
         return ResponseEntity.ok(AuthDtos.UserDto.from(u));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
     public ResponseEntity<?> listar(@RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "20") int size,
                                     @RequestParam(required = false) String q) {
@@ -58,7 +76,7 @@ public class UsuarioControlador {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
     public ResponseEntity<?> crear(@RequestBody AuthDtos.RegisterRequest req) {
         Profile p = new Profile();
         p.setNombre(req.nombre);
@@ -68,13 +86,13 @@ public class UsuarioControlador {
         p.setRegion(req.region);
         p.setCiudad(req.ciudad);
         p.setCodigoPostal(req.codigoPostal);
-        Role role = req.role != null ? Role.valueOf(req.role.toUpperCase()) : Role.USER;
+        Role role = req.role != null ? Role.valueOf(req.role.toUpperCase()) : Role.CLIENT;
         User u = servicio.crearPorAdmin(req.email, req.password, role, p);
         return ResponseEntity.status(201).body(AuthDtos.UserDto.from(u));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
     public ResponseEntity<?> actualizarPorAdmin(@PathVariable Long id, @RequestBody AuthDtos.RegisterRequest req) {
         Profile p = new Profile();
         p.setNombre(req.nombre);
@@ -90,7 +108,7 @@ public class UsuarioControlador {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         servicio.eliminar(id);
         return ResponseEntity.noContent().build();

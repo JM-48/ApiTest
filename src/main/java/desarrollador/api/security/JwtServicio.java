@@ -33,7 +33,7 @@ public class JwtServicio {
         return Jwts.builder()
                 .setSubject(String.valueOf(user.getId()))
                 .claim("email", user.getEmail())
-                .claim("role", user.getRole() == null ? Role.USER.name() : user.getRole().name())
+                .claim("role", user.getRole() == null ? Role.CLIENT.name() : user.getRole().name())
                 .setIssuedAt(iat)
                 .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)

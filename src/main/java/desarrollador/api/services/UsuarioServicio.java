@@ -34,7 +34,7 @@ public class UsuarioServicio {
         User u = new User();
         u.setEmail(email.toLowerCase());
         u.setPasswordHash(encoder.encode(password));
-        u.setRole(role == null ? Role.USER : role);
+        u.setRole(role == null ? Role.CLIENT : role);
         u.setProfile(profile);
         return repositorio.save(u);
     }

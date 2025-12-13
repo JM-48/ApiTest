@@ -23,7 +23,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role = Role.USER;
+    private Role role = Role.CLIENT;
 
     @Embedded
     private Profile profile = new Profile();

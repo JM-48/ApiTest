@@ -43,7 +43,7 @@ public class AuthDtos {
             UserDto d = new UserDto();
             d.id = u.getId();
             d.email = u.getEmail();
-            d.role = u.getRole() != null ? u.getRole().name() : Role.USER.name();
+            d.role = u.getRole() != null ? u.getRole().name() : Role.CLIENT.name();
             d.profile = u.getProfile();
             if (u.getProfile() != null) {
                 d.region = u.getProfile().getRegion();

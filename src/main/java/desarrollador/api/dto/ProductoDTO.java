@@ -10,24 +10,27 @@ public class ProductoDTO {
     private String descripcion;
     private String tipo;
     private double precio;
+    private Double precioOriginal;
     private String imagen;
     private Integer stock;
 
     public ProductoDTO() {
     }
 
-    public ProductoDTO(Long id, String nombre, String descripcion, String tipo, double precio, String imagen, Integer stock) {
+    public ProductoDTO(Long id, String nombre, String descripcion, String tipo, double precio, Double precioOriginal, String imagen, Integer stock) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.tipo = tipo;
         this.precio = precio;
+        this.precioOriginal = precioOriginal;
         this.imagen = imagen;
         this.stock = stock;
     }
 
     public static ProductoDTO fromEntity(Producto p) {
-        return new ProductoDTO(p.getId(), p.getNombre(), p.getDescripcion(), p.getCategoriaNombre(), p.getPrecio(), p.getImagenUrl(), p.getStock());
+        Double original = p.getPrecio() > 0 ? Math.round((p.getPrecio() / 1.19) * 100.0) / 100.0 : null;
+        return new ProductoDTO(p.getId(), p.getNombre(), p.getDescripcion(), p.getCategoriaNombre(), p.getPrecio(), original, p.getImagenUrl(), p.getStock());
     }
 
     public Long getId() {
@@ -84,5 +87,13 @@ public class ProductoDTO {
 
     public void setStock(Integer stock) {
         this.stock = stock;
+    }
+
+    public Double getPrecioOriginal() {
+        return precioOriginal;
+    }
+
+    public void setPrecioOriginal(Double precioOriginal) {
+        this.precioOriginal = precioOriginal;
     }
 }

@@ -42,7 +42,27 @@ public class ProductoControlador {
         }
     }
 
+    @GetMapping("/{id}/precio")
+    @Operation(summary = "Detalle de precio: original e IVA")
+    public ResponseEntity<?> precio(@PathVariable Long id) {
+        try {
+            Producto p = servicio.obtener(id);
+            double conIva = p.getPrecio();
+            double original = Math.round((conIva / 1.19) * 100.0) / 100.0;
+            double ivaMonto = Math.round((conIva - original) * 100.0) / 100.0;
+            return ResponseEntity.ok(java.util.Map.of(
+                    "precioOriginal", original,
+                    "precioConIva", conIva,
+                    "ivaPorcentaje", 0.19,
+                    "ivaMonto", ivaMonto
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body("Producto no encontrado");
+        }
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
     @Operation(summary = "Crear producto con imagen (multipart/form-data)")
     public ResponseEntity<?> crearMultipart(@RequestParam String nombre,
                                             @RequestParam(required = false) String descripcion,
@@ -71,6 +91,7 @@ public class ProductoControlador {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
     public ResponseEntity<?> crearJson(@jakarta.validation.Valid @RequestBody Producto payload) {
         try {
             Producto creado = servicio.crear(payload);
@@ -83,6 +104,7 @@ public class ProductoControlador {
     }
 
     @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
     public ResponseEntity<?> actualizar(@PathVariable Long id,
                                         @jakarta.validation.Valid @RequestBody Producto cambios) {
         try {
@@ -126,6 +148,7 @@ public class ProductoControlador {
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
             servicio.eliminar(id);

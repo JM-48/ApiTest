@@ -1,6 +1,8 @@
 package desarrollador.api.models;
 
 public enum Role {
-    USER,
-    ADMIN
+    ADMIN,
+    USER_AD,
+    PROD_AD,
+    CLIENT
 }
