@@ -36,6 +36,7 @@ public class SeguridadConfig {
                         .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/productos/**").permitAll()
                         .requestMatchers("/imagenes/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/users/me").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/productos/**").hasAnyRole("ADMIN","PROD_AD")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/productos/**").hasAnyRole("ADMIN","PROD_AD")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/productos/**").hasAnyRole("ADMIN","PROD_AD")
