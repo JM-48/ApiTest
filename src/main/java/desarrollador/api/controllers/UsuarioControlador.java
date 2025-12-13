@@ -86,7 +86,9 @@ public class UsuarioControlador {
         p.setRegion(req.region);
         p.setCiudad(req.ciudad);
         p.setCodigoPostal(req.codigoPostal);
-        Role role = req.role != null ? Role.valueOf(req.role.toUpperCase()) : Role.CLIENT;
+        Role role = req.role != null
+                ? ("USER".equalsIgnoreCase(req.role) ? Role.CLIENT : Role.valueOf(req.role.toUpperCase()))
+                : Role.CLIENT;
         User u = servicio.crearPorAdmin(req.email, req.password, role, p);
         return ResponseEntity.status(201).body(AuthDtos.UserDto.from(u));
     }
@@ -102,7 +104,9 @@ public class UsuarioControlador {
         p.setRegion(req.region);
         p.setCiudad(req.ciudad);
         p.setCodigoPostal(req.codigoPostal);
-        Role role = req.role != null ? Role.valueOf(req.role.toUpperCase()) : null;
+        Role role = req.role != null
+                ? ("USER".equalsIgnoreCase(req.role) ? Role.CLIENT : Role.valueOf(req.role.toUpperCase()))
+                : null;
         User u = servicio.actualizarPorAdmin(id, req.email, role, p);
         return ResponseEntity.ok(AuthDtos.UserDto.from(u));
     }

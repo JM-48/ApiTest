@@ -23,5 +23,11 @@ public class SchemaFixer {
         } catch (Exception e) {
             log.warn("No se pudo ajustar columna categoria_id", e);
         }
+        try {
+            jdbc.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
+            jdbc.execute("ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('ADMIN','USER_AD','PROD_AD','CLIENT','USER'))");
+        } catch (Exception e) {
+            log.warn("No se pudo ajustar constraint de role", e);
+        }
     }
 }
