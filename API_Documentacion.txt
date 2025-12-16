@@ -92,12 +92,37 @@ API REST v1 — Documentación Técnica
   - Respuesta: OrdenDTO actualizado
 
 6. Checkout
-- POST /api/v1/checkout (JWT)
-  - Body: Direccion completa
-  - Respuesta: OrdenDTO con status PENDING
+- POST /api/v1/checkout (JWT, Content-Type: application/json)
+  - Body:
+    {
+      "items": [
+        { "productoId": "1", "nombre": "Prod", "precioUnitario": 1000, "cantidad": 1 }
+      ],
+      "total": 1000,
+      "metodoEnvio": "domicilio"|"retiro",
+      "metodoPago": "local"|"tarjeta",
+      "destinatario": "Juan Perez",
+      "direccion": "Calle 123",
+      "region": "Región Metropolitana de Santiago",
+      "ciudad": "Santiago",
+      "codigoPostal": "0000000"
+    }
+  - Validaciones:
+    - items no vacío; cantidad >= 1; precioUnitario >= 0; nombre requerido
+    - total coincide con suma de items (tolerancia 0.01)
+    - strings requeridos: destinatario, direccion, region, ciudad, codigoPostal
+    - metodoEnvio en {domicilio, retiro}; metodoPago en {local, tarjeta}
+  - Respuestas:
+    - 201: { id, status:"PENDING", total, items, createdAt }
+    - 422: { message:"Validation error", details:[...] }
+    - 401: { message:"Unauthorized" }
 - POST /api/v1/checkout/{ordenId}/confirm (JWT)
   - Body: { referenciaPago }
-  - Respuesta: CompraDTO
+  - Respuesta: { ordenId, estado:"PAID", referenciaPago }
+  - Errores:
+    - 403 si la orden no pertenece al usuario
+    - 404 si no existe
+    - 409 si ya está confirmada
   - Ejemplo:
     {
       "id": 7,

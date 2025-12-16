@@ -135,5 +135,46 @@ public class OrdenServicio {
     public Orden obtener(Long id) {
         return ordenRepositorio.findById(id).orElseThrow(() -> new NoSuchElementException("Orden no encontrada"));
     }
-}
 
+    public Producto resolverProducto(String productoId, String nombre) {
+        Producto byId = null;
+        if (productoId != null && !productoId.isBlank()) {
+            try {
+                Long pid = Long.valueOf(productoId);
+                byId = productoRepositorio.findById(pid).orElse(null);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (byId != null) return byId;
+        if (nombre != null && !nombre.isBlank()) {
+            return productoRepositorio.findByNombreIgnoreCase(nombre).orElse(null);
+        }
+        return null;
+    }
+
+    public Orden crearOrden(User user, Direccion d, double total) {
+        Orden o = new Orden();
+        o.setUser(user);
+        o.setDireccion(d);
+        o.setStatus(OrderStatus.PENDING);
+        o.setTotal(total);
+        return ordenRepositorio.save(o);
+    }
+
+    public DetalleOrden agregarItemConPrecio(Orden orden, Producto p, int cantidad, double precioUnitario) {
+        DetalleOrden item = detalleRepositorio.findByOrdenAndProducto(orden, p).orElse(null);
+        if (item == null) {
+            item = new DetalleOrden();
+            item.setOrden(orden);
+            item.setProducto(p);
+            item.setCantidad(cantidad);
+            item.setPrecioUnitario(precioUnitario);
+            item.setTotal(precioUnitario * cantidad);
+        } else {
+            item.setCantidad(item.getCantidad() + cantidad);
+            item.setPrecioUnitario(precioUnitario);
+            item.setTotal(item.getPrecioUnitario() * item.getCantidad());
+        }
+        return detalleRepositorio.save(item);
+    }
+}

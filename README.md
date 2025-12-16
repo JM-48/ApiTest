@@ -282,9 +282,43 @@
   - Respuesta: `OrdenDTO` actualizado
 
 ### Checkout
-- `POST /api/v1/checkout` (JWT):
-  - Body: `Direccion` completa
-  - Respuesta: `OrdenDTO` con `status: "PENDING"`
+- `POST /api/v1/checkout` (JWT, Content-Type: application/json):
+  - Body:
+    ```json
+    {
+      "items": [
+        { "productoId": "1", "nombre": "Prod", "precioUnitario": 1000, "cantidad": 1 }
+      ],
+      "total": 1000,
+      "metodoEnvio": "domicilio",
+      "metodoPago": "local",
+      "destinatario": "Juan Perez",
+      "direccion": "Calle 123",
+      "region": "Región Metropolitana de Santiago",
+      "ciudad": "Santiago",
+      "codigoPostal": "0000000"
+    }
+    ```
+  - Validaciones:
+    - `items`: arreglo no vacío; por ítem `cantidad >= 1`, `precioUnitario >= 0`, `nombre` requerido
+    - `total`: debe coincidir con suma `precioUnitario * cantidad` (tolerancia 0.01)
+    - `destinatario`, `direccion`, `region`, `ciudad`, `codigoPostal` obligatorios
+    - `metodoEnvio`: `domicilio|retiro`
+    - `metodoPago`: `local|tarjeta`
+  - Respuestas:
+    - `201`:
+      ```json
+      { "id":"<ordenId>", "status":"PENDING", "total":1000, "items":[...], "createdAt":"ISOString" }
+      ```
+    - `422`: `{ "message":"Validation error", "details":[ "...", "..." ] }`
+    - `401`: `{ "message":"Unauthorized" }`
+- `POST /api/v1/checkout/{ordenId}/confirm` (JWT, Content-Type: application/json):
+  - Body: `{ "referenciaPago": "WEB-1734320000000" }`
+  - Respuestas:
+    - `200`: `{ "ordenId":"<ordenId>", "estado":"PAID", "referenciaPago":"WEB-..." }`
+    - `403`: cuando la orden no pertenece al usuario
+    - `404`: orden no existe
+    - `409`: `{ "message":"Order already confirmed" }`
 - `POST /api/v1/checkout/{ordenId}/confirm` (JWT):
   - Body: `{ "referenciaPago": "PAY-123" }`
   - Respuesta: `CompraDTO`
@@ -356,7 +390,7 @@ curl -X DELETE http://localhost:8080/api/v1/cart/items/1 \
 # Checkout
 curl -X POST http://localhost:8080/api/v1/checkout \
   -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
-  -d '{"nombreDestinatario":"Juan Pérez","telefono":"999999","direccion":"Av. Siempre Viva 742","region":"Metropolitana","ciudad":"Santiago","codigoPostal":"8320000"}'
+  -d '{"items":[{"productoId":"1","nombre":"Prod","precioUnitario":1000,"cantidad":1}],"total":1000,"metodoEnvio":"retiro","metodoPago":"local","destinatario":"Juan Perez","direccion":"Calle 123","region":"Región Metropolitana de Santiago","ciudad":"Santiago","codigoPostal":"0000000"}'
 curl -X POST http://localhost:8080/api/v1/checkout/1/confirm \
   -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
   -d '{"referenciaPago":"PAY-123"}'
