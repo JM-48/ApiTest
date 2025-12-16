@@ -29,5 +29,12 @@ public class SchemaFixer {
         } catch (Exception e) {
             log.warn("No se pudo ajustar constraint de role", e);
         }
+        try {
+            jdbc.execute("ALTER TABLE orden ADD COLUMN IF NOT EXISTS fecha_pedido TIMESTAMP");
+            jdbc.execute("UPDATE orden SET fecha_pedido = COALESCE(fecha_pedido, created_at)");
+            jdbc.execute("ALTER TABLE orden ALTER COLUMN fecha_pedido SET NOT NULL");
+        } catch (Exception e) {
+            log.warn("No se pudo agregar columna fecha_pedido en orden", e);
+        }
     }
 }

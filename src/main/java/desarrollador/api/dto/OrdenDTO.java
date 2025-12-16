@@ -13,6 +13,7 @@ public class OrdenDTO {
     private Long id;
     private String status;
     private double total;
+    private java.time.Instant fechaPedido;
     private String destinatario;
     private String direccion;
     private String region;
@@ -25,6 +26,7 @@ public class OrdenDTO {
         dto.id = o.getId();
         dto.status = o.getStatus().name();
         dto.total = o.getTotal();
+        dto.fechaPedido = o.getFechaPedido();
         Direccion d = o.getDireccion();
         if (d != null) {
             dto.destinatario = d.getNombreDestinatario();
@@ -43,6 +45,8 @@ public class OrdenDTO {
     public void setStatus(String status) { this.status = status; }
     public double getTotal() { return total; }
     public void setTotal(double total) { this.total = total; }
+    public java.time.Instant getFechaPedido() { return fechaPedido; }
+    public void setFechaPedido(java.time.Instant fechaPedido) { this.fechaPedido = fechaPedido; }
     public String getDestinatario() { return destinatario; }
     public void setDestinatario(String destinatario) { this.destinatario = destinatario; }
     public String getDireccion() { return direccion; }
@@ -56,4 +60,3 @@ public class OrdenDTO {
     public List<DetalleOrdenDTO> getItems() { return items; }
     public void setItems(List<DetalleOrdenDTO> items) { this.items = items; }
 }
-

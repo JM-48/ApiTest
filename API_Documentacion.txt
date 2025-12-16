@@ -25,6 +25,16 @@ API REST v1 — Documentación Técnica
 - PUT /api/v1/users/{id} (ADMIN/USER_AD)
   - Body: igual a register (actualizable)
   - Respuesta: UserDto
+- PATCH /api/v1/users/{id} (ADMIN/USER_AD)
+  - Body parcial:
+    { email?, role?, nombre?, apellido?, telefono?, direccion?, region?, ciudad?, codigoPostal? }
+  - Comportamiento: solo se actualizan los campos presentes; el perfil se fusiona sin borrar los no enviados.
+  - Validaciones:
+    - email único
+    - role en {ADMIN, USER_AD, PROD_AD, VENDEDOR, CLIENT} (alias USER aceptado y mapeado a CLIENT)
+  - Respuestas:
+    - 200: UserDto
+    - 400/422: error de validación (p.ej. email duplicado)
 - DELETE /api/v1/users/{id} (ADMIN/USER_AD)
   - Respuesta: 204
 
@@ -136,8 +146,15 @@ API REST v1 — Documentación Técnica
 7. Órdenes
 - GET /api/v1/orders (JWT)
   - Respuesta: OrdenDTO[] del usuario
-- GET /api/v1/orders/admin (ADMIN)
+- GET /api/v1/orders/admin (ADMIN/VENDEDOR)
   - Respuesta: OrdenDTO[] de todos los usuarios
+- PATCH /api/v1/orders/{id} (ADMIN/VENDEDOR)
+  - Body parcial:
+    { status, fechaPedido (ISOString), destinatario, direccion, region, ciudad, codigoPostal }
+  - Respuestas:
+    - 200: OrdenDTO
+    - 422: { message:"Validation error", details:["status inválido"] }
+    - 409: { message:"Status change not allowed" }
 
 8. Modelos de respuesta (DTO)
 - ProductoDTO:
@@ -145,7 +162,7 @@ API REST v1 — Documentación Técnica
 - DetalleOrdenDTO:
   - { productoId, nombre, precioUnitario, cantidad, total, imagen }
 - OrdenDTO:
-  - { id, status, total, destinatario, direccion, region, ciudad, codigoPostal, items: DetalleOrdenDTO[] }
+  - { id, status, total, fechaPedido, destinatario, direccion, region, ciudad, codigoPostal, items: DetalleOrdenDTO[] }
 - CompraDTO:
   - { id, ordenId, estado, monto, referenciaPago, fechaPago }
 

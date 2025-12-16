@@ -34,6 +34,9 @@ public class Orden {
     @Column(nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "fecha_pedido", nullable = false)
+    private Instant fechaPedido;
+
     @OneToMany(mappedBy = "orden", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetalleOrden> items = new ArrayList<>();
 
@@ -65,5 +68,6 @@ public class Orden {
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
     public List<DetalleOrden> getItems() { return items; }
     public void setItems(List<DetalleOrden> items) { this.items = items; }
+    public Instant getFechaPedido() { return fechaPedido; }
+    public void setFechaPedido(Instant fechaPedido) { this.fechaPedido = fechaPedido; }
 }
-

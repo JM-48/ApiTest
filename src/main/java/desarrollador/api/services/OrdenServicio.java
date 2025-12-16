@@ -107,6 +107,9 @@ public class OrdenServicio {
         if (orden.getItems() == null || detalleRepositorio.findByOrden(orden).isEmpty()) {
             throw new IllegalArgumentException("Carrito vacío");
         }
+        if (orden.getFechaPedido() == null) {
+            orden.setFechaPedido(java.time.Instant.now());
+        }
         orden.setStatus(OrderStatus.PENDING);
         return ordenRepositorio.save(orden);
     }
@@ -158,6 +161,7 @@ public class OrdenServicio {
         o.setDireccion(d);
         o.setStatus(OrderStatus.PENDING);
         o.setTotal(total);
+        o.setFechaPedido(java.time.Instant.now());
         return ordenRepositorio.save(o);
     }
 

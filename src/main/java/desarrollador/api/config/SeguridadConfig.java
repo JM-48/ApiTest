@@ -44,9 +44,11 @@ public class SeguridadConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/productos/**").hasAnyRole("ADMIN","PROD_AD","VENDEDOR")
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/users").hasAnyRole("ADMIN","USER_AD")
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/users").hasAnyRole("ADMIN","USER_AD")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/users/**").hasAnyRole("ADMIN","USER_AD")
                         .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/v1/users/**").hasAnyRole("ADMIN","USER_AD")
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/users/**").hasAnyRole("ADMIN","USER_AD")
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/orders/admin").hasRole("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/orders/admin").hasAnyRole("ADMIN","VENDEDOR")
+                        .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/orders/**").hasAnyRole("ADMIN","VENDEDOR")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

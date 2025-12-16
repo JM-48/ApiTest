@@ -48,7 +48,8 @@
   - `PATCH /api/v1/users/me`: autenticado (sin rol especial)
   - `GET|POST|PUT|DELETE /api/v1/cart/**`: `CLIENT` o `ADMIN`
   - `POST /api/v1/checkout/**`: `CLIENT` o `ADMIN`
-  - `GET /api/v1/orders/admin`: `ADMIN`
+  - `GET /api/v1/orders/admin`: `ADMIN` o `VENDEDOR`
+  - `PATCH /api/v1/orders/**`: `ADMIN` o `VENDEDOR`
 - Errores:
   - `401`: `{"error":"unauthorized","message":"Token requerido"}`
   - `403`: `{"error":"forbidden","message":"Acceso denegado"}`
@@ -87,6 +88,7 @@
     "id": 42,
     "status": "CART",
     "total": 238.0,
+    "fechaPedido": "2025-12-16T13:45:00Z",
     "destinatario": "Juan Pérez",
     "direccion": "Av. Siempre Viva 742",
     "region": "Metropolitana",
@@ -190,6 +192,16 @@
   - Respuesta: `UserDto` creado
 - `PUT /api/v1/users/{id}` (ADMIN/USER_AD):
   - Body: campos de registro (actualiza `email`, `role`, `profile`)
+  - Respuesta: `UserDto` actualizado
+- `PATCH /api/v1/users/{id}` (ADMIN/USER_AD):
+  - Body parcial:
+    ```json
+    { "email":"nuevo@correo.com", "role":"USER_AD", "telefono":"987654321", "ciudad":"Santiago" }
+    ```
+  - Reglas:
+    - Solo actualiza los campos presentes
+    - `email` debe ser único
+    - `role` en `{ADMIN,USER_AD,PROD_AD,VENDEDOR,CLIENT}`; alias `USER` → `CLIENT`
   - Respuesta: `UserDto` actualizado
 - `DELETE /api/v1/users/{id}` (ADMIN/USER_AD):
   - Respuesta: `204 No Content`
@@ -337,8 +349,25 @@
 ### Órdenes
 - `GET /api/v1/orders` (JWT):
   - Respuesta: `OrdenDTO[]` del usuario
-- `GET /api/v1/orders/admin` (ADMIN):
+- `GET /api/v1/orders/admin` (ADMIN/VENDEDOR):
   - Respuesta: `OrdenDTO[]` de todos los usuarios
+- `PATCH /api/v1/orders/{id}` (ADMIN/VENDEDOR, Content-Type: application/json):
+  - Body parcial:
+    ```json
+    {
+      "status": "CANCELLED",
+      "fechaPedido": "2025-12-16T13:45:00Z",
+      "destinatario": "Juan Pérez",
+      "direccion": "Av. Siempre Viva 742",
+      "region": "Metropolitana",
+      "ciudad": "Santiago",
+      "codigoPostal": "8320000"
+    }
+    ```
+  - Respuestas:
+    - `200`: `OrdenDTO` actualizado
+    - `422`: `{ "message":"Validation error", "details":[ "status inválido" ] }`
+    - `409`: `{ "message":"Status change not allowed" }`
 ```bash
 # Registro
 curl -X POST http://localhost:8080/api/v1/auth/register \
@@ -397,6 +426,16 @@ curl -X POST http://localhost:8080/api/v1/checkout/1/confirm \
 
 # Usuarios admin (ADMIN/USER_AD)
 curl -H "Authorization: Bearer TOKEN" "http://localhost:8080/api/v1/users?page=0&size=20&q=user"
+
+# Usuarios admin (editar parcial)
+curl -X PATCH http://localhost:8080/api/v1/users/42 \
+  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
+  -d '{"email":"nuevo@correo.com","role":"USER_AD","telefono":"987654321","ciudad":"Santiago"}'
+
+# Órdenes (editar - ADMIN/VENDEDOR)
+curl -X PATCH http://localhost:8080/api/v1/orders/42 \
+  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
+  -d '{"status":"CANCELLED","fechaPedido":"2025-12-16T13:45:00Z","direccion":"Calle 123","ciudad":"Santiago"}'
 ```
 
 ## Manejo de Errores

@@ -111,6 +111,37 @@ public class UsuarioControlador {
         return ResponseEntity.ok(AuthDtos.UserDto.from(u));
     }
 
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
+    public ResponseEntity<?> actualizarPorAdminParcial(@PathVariable Long id, @RequestBody AuthDtos.UserUpdateRequest req) {
+        Profile merged = null;
+        boolean hasProfileChanges = req.nombre != null
+                || req.apellido != null
+                || req.telefono != null
+                || req.direccion != null
+                || req.region != null
+                || req.ciudad != null
+                || req.codigoPostal != null;
+        if (hasProfileChanges) {
+            User existente = servicio.obtener(id);
+            Profile base = existente.getProfile();
+            if (base == null) base = new Profile();
+            if (req.nombre != null) base.setNombre(req.nombre);
+            if (req.apellido != null) base.setApellido(req.apellido);
+            if (req.telefono != null) base.setTelefono(req.telefono);
+            if (req.direccion != null) base.setDireccion(req.direccion);
+            if (req.region != null) base.setRegion(req.region);
+            if (req.ciudad != null) base.setCiudad(req.ciudad);
+            if (req.codigoPostal != null) base.setCodigoPostal(req.codigoPostal);
+            merged = base;
+        }
+        Role role = req.role != null
+                ? ("USER".equalsIgnoreCase(req.role) ? Role.CLIENT : Role.valueOf(req.role.toUpperCase()))
+                : null;
+        User u = servicio.actualizarPorAdmin(id, req.email, role, merged);
+        return ResponseEntity.ok(AuthDtos.UserDto.from(u));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','USER_AD')")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {

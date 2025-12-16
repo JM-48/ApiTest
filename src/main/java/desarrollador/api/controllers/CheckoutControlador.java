@@ -93,6 +93,7 @@ public class CheckoutControlador {
                     "id", dto.getId(),
                     "status", "PENDING",
                     "total", dto.getTotal(),
+                    "fechaPedido", dto.getFechaPedido(),
                     "items", req.items,
                     "createdAt", orden.getCreatedAt() == null ? java.time.Instant.now().toString() : orden.getCreatedAt().toString()
             ));

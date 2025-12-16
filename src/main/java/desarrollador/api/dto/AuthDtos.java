@@ -24,6 +24,18 @@ public class AuthDtos {
         public String password;
     }
 
+    public static class UserUpdateRequest {
+        public String email;
+        public String role;
+        public String nombre;
+        public String apellido;
+        public String telefono;
+        public String direccion;
+        public String region;
+        public String ciudad;
+        public String codigoPostal;
+    }
+
     @JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     public static class LoginResponse {
         public String token;
