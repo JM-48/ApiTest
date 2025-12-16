@@ -14,7 +14,7 @@
 
 ## Variables de Entorno
 - `JWT_SECRET`: clave Base64 para firmar JWT (HS256). Si no se setea, se genera una clave efímera en cada arranque.
-- `ALLOWED_ORIGINS`: orígenes CORS permitidos, separados por coma. Ej: `http://localhost:5173,https://tu-dominio`
+- `ALLOWED_ORIGINS`: orígenes CORS permitidos, separados por coma. Ej: `http://localhost:5173,https://web-gg-accesorios-1.onrender.com`
 - Base de datos en Render:
   - `JDBC_DATABASE_URL` o `DATABASE_URL`
   - `DB_USER`, `DB_PASS` si aplica

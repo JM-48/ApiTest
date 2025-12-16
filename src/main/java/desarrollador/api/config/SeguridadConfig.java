@@ -96,7 +96,7 @@ public class SeguridadConfig {
         String originsProp = env.getProperty("ALLOWED_ORIGINS");
         java.util.List<String> origins = (originsProp != null && !originsProp.isBlank())
                 ? java.util.Arrays.stream(originsProp.split(",")).map(String::trim).toList()
-                : java.util.Arrays.asList("http://localhost:5173", "https://TU_DOMINIO_WEB");
+                : java.util.Arrays.asList("http://localhost:5173", "https://web-gg-accesorios-1.onrender.com");
         org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(java.util.Arrays.asList("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
