@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/imagenes")
+@RequestMapping("/api/v1/imagenes")
 public class ImagenControlador {
     private final ImagenCloudService imagenCloudService;
 

@@ -36,16 +36,19 @@
 ```
 
 ## Seguridad y Roles
-- Roles soportados: `ADMIN`, `USER_AD`, `PROD_AD`, `CLIENT` (alias legacy `USER` aceptado y mapeado a `CLIENT` en nuevas altas).
-- Reglas de acceso:
-  - `POST /auth/**`: público
-  - `GET /productos/**`: público
-  - `POST|PUT|DELETE /productos/**`: `ADMIN` o `PROD_AD`
-  - `GET /users`: `ADMIN` o `USER_AD`
-  - `POST /users`: `ADMIN` o `USER_AD`
-  - `PUT /users/**`: `ADMIN` o `USER_AD`
-  - `DELETE /users/**`: `ADMIN` o `USER_AD`
-  - `PATCH /users/me`: autenticado (sin rol especial)
+- Roles soportados: `ADMIN`, `USER_AD`, `PROD_AD`, `VENDEDOR`, `CLIENT` (alias legacy `USER` aceptado y mapeado a `CLIENT` en nuevas altas).
+- Reglas de acceso (v1):
+  - `POST /api/v1/auth/**`: público
+  - `GET /api/v1/productos/**`: público
+  - `POST|PUT|DELETE /api/v1/productos/**`: `ADMIN` o `PROD_AD` o `VENDEDOR`
+  - `GET /api/v1/users`: `ADMIN` o `USER_AD`
+  - `POST /api/v1/users`: `ADMIN` o `USER_AD`
+  - `PUT /api/v1/users/**`: `ADMIN` o `USER_AD`
+  - `DELETE /api/v1/users/**`: `ADMIN` o `USER_AD`
+  - `PATCH /api/v1/users/me`: autenticado (sin rol especial)
+  - `GET|POST|PUT|DELETE /api/v1/cart/**`: `CLIENT` o `ADMIN`
+  - `POST /api/v1/checkout/**`: `CLIENT` o `ADMIN`
+  - `GET /api/v1/orders/admin`: `ADMIN`
 - Errores:
   - `401`: `{"error":"unauthorized","message":"Token requerido"}`
   - `403`: `{"error":"forbidden","message":"Acceso denegado"}`
@@ -67,6 +70,51 @@
   - `precio` se considera “precio con IVA (19%)”. `precioOriginal` = redondeo de `precio / 1.19` a 2 decimales.
   - `descripcion` se almacena en `TEXT` y acepta HTML/Markdown (sin sanitización).
   - `stock` negativo se normaliza a `0` en crear/actualizar.
+- `DetalleOrdenDTO` (respuesta):
+  ```json
+  {
+    "productoId": 1,
+    "nombre": "Polera Negra",
+    "precioUnitario": 119.0,
+    "cantidad": 2,
+    "total": 238.0,
+    "imagen": "https://..."
+  }
+  ```
+- `OrdenDTO` (respuesta):
+  ```json
+  {
+    "id": 42,
+    "status": "CART",
+    "total": 238.0,
+    "destinatario": "Juan Pérez",
+    "direccion": "Av. Siempre Viva 742",
+    "region": "Metropolitana",
+    "ciudad": "Santiago",
+    "codigoPostal": "8320000",
+    "items": [
+      {
+        "productoId": 1,
+        "nombre": "Polera Negra",
+        "precioUnitario": 119.0,
+        "cantidad": 2,
+        "total": 238.0,
+        "imagen": "https://..."
+      }
+    ]
+  }
+  ```
+- `CompraDTO` (respuesta):
+  ```json
+  {
+    "id": 7,
+    "ordenId": 42,
+    "estado": "CONFIRMADA",
+    "monto": 238.0,
+    "referenciaPago": "PAY-123",
+    "fechaPago": "2025-12-15T19:20:30Z"
+  }
+  ```
 - `Profile` (entrada/salida):
   ```json
   {
@@ -91,10 +139,10 @@
   }
   ```
 
-## Endpoints
+## Endpoints (v1)
 
 ### Autenticación
-- `POST /auth/register`
+- `POST /api/v1/auth/register`
   - Body:
     ```json
     {
@@ -111,7 +159,7 @@
     }
     ```
   - Respuesta: `UserDto`
-- `POST /auth/login`
+- `POST /api/v1/auth/login`
   - Body:
     ```json
     { "email": "user@correo.com", "password": "Abc123" }
@@ -124,34 +172,34 @@
     }
     ```
 
-### Usuarios (personales)
-- `GET /users/me` (JWT):
+- ### Usuarios (personales)
+- `GET /api/v1/users/me` (JWT):
   - Respuesta: `UserDto`
-- `PATCH /users/me` (JWT):
+- `PATCH /api/v1/users/me` (JWT):
   - Body: `Profile` parcial o completo
   - Respuesta: `UserDto` actualizado
 
-### Usuarios (administración)
-- `GET /users` (ADMIN/USER_AD):
+- ### Usuarios (administración)
+- `GET /api/v1/users` (ADMIN/USER_AD):
   - Query: `page` (def `0`), `size` (def `20`), `q` (búsqueda por email contiene)
   - Respuesta: `Page<UserDto>`
-- `GET /users/{id}` (ADMIN/USER_AD):
+- `GET /api/v1/users/{id}` (ADMIN/USER_AD):
   - Respuesta: `UserDto`
-- `POST /users` (ADMIN/USER_AD):
+- `POST /api/v1/users` (ADMIN/USER_AD):
   - Body: igual a `register`
   - Respuesta: `UserDto` creado
-- `PUT /users/{id}` (ADMIN/USER_AD):
+- `PUT /api/v1/users/{id}` (ADMIN/USER_AD):
   - Body: campos de registro (actualiza `email`, `role`, `profile`)
   - Respuesta: `UserDto` actualizado
-- `DELETE /users/{id}` (ADMIN/USER_AD):
+- `DELETE /api/v1/users/{id}` (ADMIN/USER_AD):
   - Respuesta: `204 No Content`
 
-### Productos
-- `GET /productos` (público):
+- ### Productos
+- `GET /api/v1/productos` (público):
   - Respuesta: `ProductoDTO[]`
-- `GET /productos/{id}` (público):
+- `GET /api/v1/productos/{id}` (público):
   - Respuesta: `ProductoDTO`
-- `GET /productos/{id}/precio` (público):
+- `GET /api/v1/productos/{id}/precio` (público):
   - Respuesta:
     ```json
     {
@@ -161,11 +209,11 @@
       "ivaMonto": 19.0
     }
     ```
-- `POST /productos` (ADMIN/PROD_AD, multipart/form-data):
+- `POST /api/v1/productos` (ADMIN/PROD_AD/VENDEDOR, multipart/form-data):
   - Requeridos: `nombre`, `precio`, `tipo`
   - Opcionales: `descripcion`, `stock`, `imagen` (archivo)
   - Respuesta: `ProductoDTO`
-- `POST /productos` (ADMIN/PROD_AD, application/json):
+- `POST /api/v1/productos` (ADMIN/PROD_AD/VENDEDOR, application/json):
   - Body:
     ```json
     {
@@ -178,30 +226,88 @@
     }
     ```
   - Respuesta: `ProductoDTO`
-- `PUT /productos/{id}` (ADMIN/PROD_AD):
+- `PUT /api/v1/productos/{id}` (ADMIN/PROD_AD/VENDEDOR):
   - Body parcial:
     ```json
     { "nombre": "string", "descripcion": "string", "precio": 119.0, "tipo": "Categoria", "imagenUrl": "https://...", "stock": 5 }
     ```
   - Reglas: `precio>0`; `tipo` no vacío; `stock<0` → `0`
-- `DELETE /productos/{id}` (ADMIN/PROD_AD):
+- `DELETE /api/v1/productos/{id}` (ADMIN/PROD_AD/VENDEDOR):
   - Respuesta: `204 No Content`
-- `POST /productos/{id}/imagen` (multipart/form-data):
+- `POST /api/v1/productos/{id}/imagen` (multipart/form-data):
   - Campo: `imagen` (archivo)
   - Respuesta: `{ "url": "https://..." }` o `500` si falla la subida
-- `POST /productos/{id}/imagen` (application/json):
+- `POST /api/v1/productos/{id}/imagen` (application/json):
   - Body: `{ "url": "https://..." }`
   - Respuesta: `{ "url": "https://..." }`
 
-### Imágenes
-- `POST /imagenes` (multipart/form-data, público):
+- ### Imágenes
+- `POST /api/v1/imagenes` (multipart/form-data, público):
   - Campo: `imagen` (archivo)
   - Respuesta: `{ "url": "https://..." }`
 
-## Ejemplos de Uso (cURL)
+### Carrito
+- `GET /api/v1/cart` (JWT):
+  - Respuesta: `OrdenDTO` con `items`
+- Ejemplo:
+  ```json
+  {
+    "id": 42,
+    "status": "CART",
+    "total": 238.0,
+    "destinatario": "Juan Pérez",
+    "direccion": "Av. Siempre Viva 742",
+    "region": "Metropolitana",
+    "ciudad": "Santiago",
+    "codigoPostal": "8320000",
+    "items": [
+      {
+        "productoId": 1,
+        "nombre": "Polera Negra",
+        "precioUnitario": 119.0,
+        "cantidad": 2,
+        "total": 238.0,
+        "imagen": "https://..."
+      }
+    ]
+  }
+  ```
+- `POST /api/v1/cart/items` (JWT):
+  - Body: `{ "productoId": 1, "cantidad": 2 }`
+  - Respuesta: `OrdenDTO` actualizado
+- `PUT /api/v1/cart/items/{productoId}` (JWT):
+  - Body: `{ "cantidad": 3 }`
+  - Respuesta: `OrdenDTO` actualizado
+- `DELETE /api/v1/cart/items/{productoId}` (JWT):
+  - Respuesta: `OrdenDTO` actualizado
+
+### Checkout
+- `POST /api/v1/checkout` (JWT):
+  - Body: `Direccion` completa
+  - Respuesta: `OrdenDTO` con `status: "PENDING"`
+- `POST /api/v1/checkout/{ordenId}/confirm` (JWT):
+  - Body: `{ "referenciaPago": "PAY-123" }`
+  - Respuesta: `CompraDTO`
+- Ejemplo:
+  ```json
+  {
+    "id": 7,
+    "ordenId": 42,
+    "estado": "CONFIRMADA",
+    "monto": 238.0,
+    "referenciaPago": "PAY-123",
+    "fechaPago": "2025-12-15T19:20:30Z"
+  }
+  ```
+
+### Órdenes
+- `GET /api/v1/orders` (JWT):
+  - Respuesta: `OrdenDTO[]` del usuario
+- `GET /api/v1/orders/admin` (ADMIN):
+  - Respuesta: `OrdenDTO[]` de todos los usuarios
 ```bash
 # Registro
-curl -X POST http://localhost:8080/auth/register \
+curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email":"user@correo.com","password":"Abc123",
@@ -211,33 +317,52 @@ curl -X POST http://localhost:8080/auth/register \
   }'
 
 # Login
-curl -X POST http://localhost:8080/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@correo.com","password":"Abc123"}'
 
 # Perfil personal (GET y PATCH)
-curl -H "Authorization: Bearer TOKEN" http://localhost:8080/users/me
-curl -X PATCH http://localhost:8080/users/me \
+curl -H "Authorization: Bearer TOKEN" http://localhost:8080/api/v1/users/me
+curl -X PATCH http://localhost:8080/api/v1/users/me \
   -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
   -d '{"telefono":"987654321","direccion":"Calle Falsa 123","region":"Valparaíso","ciudad":"Viña del Mar"}'
 
 # Productos (público)
-curl http://localhost:8080/productos
-curl http://localhost:8080/productos/1
-curl http://localhost:8080/productos/1/precio
+curl http://localhost:8080/api/v1/productos
+curl http://localhost:8080/api/v1/productos/1
+curl http://localhost:8080/api/v1/productos/1/precio
 
 # Crear producto (ADMIN/PROD_AD) JSON
-curl -X POST http://localhost:8080/productos \
+curl -X POST http://localhost:8080/api/v1/productos \
   -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
   -d '{"nombre":"Producto","descripcion":"<p>HTML</p>","precio":119,"tipo":"Categoria","stock":5}'
 
 # Subir imagen a producto
-curl -X POST http://localhost:8080/productos/1/imagen \
+curl -X POST http://localhost:8080/api/v1/productos/1/imagen \
   -H "Authorization: Bearer TOKEN" \
   -F "imagen=@/ruta/imagen.jpg"
 
+# Carrito
+curl -H "Authorization: Bearer TOKEN" http://localhost:8080/api/v1/cart
+curl -X POST http://localhost:8080/api/v1/cart/items \
+  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
+  -d '{"productoId":1,"cantidad":2}'
+curl -X PUT http://localhost:8080/api/v1/cart/items/1 \
+  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
+  -d '{"cantidad":3}'
+curl -X DELETE http://localhost:8080/api/v1/cart/items/1 \
+  -H "Authorization: Bearer TOKEN"
+
+# Checkout
+curl -X POST http://localhost:8080/api/v1/checkout \
+  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
+  -d '{"nombreDestinatario":"Juan Pérez","telefono":"999999","direccion":"Av. Siempre Viva 742","region":"Metropolitana","ciudad":"Santiago","codigoPostal":"8320000"}'
+curl -X POST http://localhost:8080/api/v1/checkout/1/confirm \
+  -H "Authorization: Bearer TOKEN" -H "Content-Type: application/json" \
+  -d '{"referenciaPago":"PAY-123"}'
+
 # Usuarios admin (ADMIN/USER_AD)
-curl -H "Authorization: Bearer TOKEN" "http://localhost:8080/users?page=0&size=20&q=user"
+curl -H "Authorization: Bearer TOKEN" "http://localhost:8080/api/v1/users?page=0&size=20&q=user"
 ```
 
 ## Manejo de Errores
@@ -249,10 +374,9 @@ curl -H "Authorization: Bearer TOKEN" "http://localhost:8080/users?page=0&size=2
 
 ## Ajustes de Esquema (Automáticos al Arranque)
 - Remueve columna obsoleta `producto.categoria_id`.
-- Actualiza constraint `users_role_check` para permitir roles (`ADMIN`,`USER_AD`,`PROD_AD`,`CLIENT`,`USER`).
+- Actualiza constraint `users_role_check` para permitir roles (`ADMIN`,`USER_AD`,`PROD_AD`,`VENDEDOR`,`CLIENT`,`USER`).
 
 ## Notas
 - `tipo` en JSON se mapea internamente a `categoriaNombre` en la entidad `Producto`.
 - `precioOriginal` es informativo para UI (mostrar “precio menor”); el backend opera con `precio` como total con IVA.
 - CORS: asegurado para `ALLOWED_ORIGINS` y métodos `GET,POST,PUT,PATCH,DELETE,OPTIONS`.
-

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/productos")
+@RequestMapping("/api/v1/productos")
 public class ProductoControlador {
     private final ProductoServicio servicio;
     private final ImagenCloudService imagenCloudService;
