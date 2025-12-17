@@ -153,8 +153,12 @@ public class ProductoControlador {
         try {
             servicio.eliminar(id);
             return ResponseEntity.noContent().build();
-        } catch (Exception e) {
+        } catch (java.util.NoSuchElementException e) {
             return ResponseEntity.status(404).body("Producto no encontrado");
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.status(409).body("No se puede eliminar el producto porque tiene registros relacionados (ej. ordenes)");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al eliminar producto: " + e.getMessage());
         }
     }
 }
