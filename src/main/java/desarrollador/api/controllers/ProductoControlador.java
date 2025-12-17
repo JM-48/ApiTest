@@ -62,7 +62,7 @@ public class ProductoControlador {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD','VENDEDOR')")
     @Operation(summary = "Crear producto con imagen (multipart/form-data)")
     public ResponseEntity<?> crearMultipart(@RequestParam String nombre,
                                             @RequestParam(required = false) String descripcion,
@@ -104,7 +104,7 @@ public class ProductoControlador {
     }
 
     @PutMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD','VENDEDOR')")
     public ResponseEntity<?> actualizar(@PathVariable Long id,
                                         @jakarta.validation.Valid @RequestBody Producto cambios) {
         try {
@@ -148,7 +148,7 @@ public class ProductoControlador {
     }
 
     @DeleteMapping("/{id}")
-    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD')")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','PROD_AD','VENDEDOR')")
     public ResponseEntity<?> eliminar(@PathVariable Long id) {
         try {
             servicio.eliminar(id);

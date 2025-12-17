@@ -35,7 +35,7 @@ public class SeguridadConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/productos/**").permitAll()
-                        .requestMatchers("/api/v1/imagenes/**").permitAll()
+                        .requestMatchers("/api/v1/imagenes", "/api/v1/imagenes/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/api/v1/users/me").authenticated()
                         .requestMatchers("/api/v1/cart/**").hasAnyRole("CLIENT","ADMIN","USER")
                         .requestMatchers("/api/v1/checkout/**").hasAnyRole("CLIENT","ADMIN","USER")

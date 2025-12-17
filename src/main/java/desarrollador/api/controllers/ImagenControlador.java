@@ -28,7 +28,8 @@ public class ImagenControlador {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error interno al subir imagen: " + e.getMessage());
         }
     }
 }

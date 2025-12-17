@@ -15,13 +15,12 @@
 ## Variables de Entorno
 - `JWT_SECRET`: clave Base64 para firmar JWT (HS256). Si no se setea, se genera una clave efímera en cada arranque.
 - `ALLOWED_ORIGINS`: orígenes CORS permitidos, separados por coma. Ej: `http://localhost:5173,https://web-gg-accesorios-1.onrender.com`
+- `CLOUDINARY_CLOUD_NAME`: Nombre de tu cloud en Cloudinary.
+- `CLOUDINARY_API_KEY`: API Key de Cloudinary.
+- `CLOUDINARY_API_SECRET`: API Secret de Cloudinary.
 - Base de datos en Render:
-  - `JDBC_DATABASE_URL` o `DATABASE_URL`
-  - `DB_USER`, `DB_PASS` si aplica
-- Cloudinary:
-  - `CLOUDINARY_CLOUD_NAME`
-  - `CLOUDINARY_API_KEY`
-  - `CLOUDINARY_API_SECRET`
+  - `JDBC_DATABASE_URL` (prioridad) o `DATABASE_URL`
+  - `DB_USER` / `DB_PASS` (opcionales si vienen en la URL)
 
 ## Ejecución
 ```bash
