@@ -404,6 +404,10 @@ curl -X POST http://localhost:8080/api/v1/productos/1/imagen \
   -H "Authorization: Bearer TOKEN" \
   -F "imagen=@/ruta/imagen.jpg"
 
+# Subir imagen genérica (público)
+curl -X POST http://localhost:8080/api/v1/imagenes \
+  -F "imagen=@/ruta/imagen.jpg"
+
 # Carrito
 curl -H "Authorization: Bearer TOKEN" http://localhost:8080/api/v1/cart
 curl -X POST http://localhost:8080/api/v1/cart/items \
